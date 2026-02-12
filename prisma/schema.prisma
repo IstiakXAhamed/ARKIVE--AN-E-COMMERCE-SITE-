@@ -1,0 +1,384 @@
+// Prisma Schema for ARKIVE E-commerce
+// Database: MySQL on cPanel shared hosting (localhost socket)
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ============================================
+// USER & AUTH
+// ============================================
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  SUPERADMIN
+}
+
+enum AuthProvider {
+  CREDENTIALS
+  GOOGLE
+}
+
+model User {
+  id            String       @id @default(cuid())
+  name          String?
+  email         String       @unique
+  emailVerified DateTime?
+  password      String?      // bcrypt hash (null for OAuth users)
+  image         String?
+  phone         String?
+  role          UserRole     @default(CUSTOMER)
+  provider      AuthProvider @default(CREDENTIALS)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  orders        Order[]
+  reviews       Review[]
+  wishlist      WishlistItem[]
+  addresses     Address[]
+  chatSessions  AIChatSession[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================
+// ADDRESS
+// ============================================
+
+model Address {
+  id        String  @id @default(cuid())
+  userId    String
+  label     String  @default("Home") // Home, Office, etc.
+  fullName  String
+  phone     String
+  division  String
+  district  String
+  area      String
+  address   String  @db.Text
+  isDefault Boolean @default(false)
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+}
+
+// ============================================
+// PRODUCT CATALOG
+// ============================================
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?   @db.Text
+  icon        String?   // emoji or icon name
+  image       String?   // Cloudinary URL
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products Product[]
+
+  @@index([slug])
+  @@index([isActive])
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  description     String?  @db.Text
+  shortDesc       String?  @db.VarChar(500)
+  price           Decimal  @db.Decimal(10, 2)
+  compareAtPrice  Decimal? @db.Decimal(10, 2) // original/strikethrough price
+  costPrice       Decimal? @db.Decimal(10, 2) // for profit tracking
+  sku             String?  @unique
+  stock           Int      @default(0)
+  lowStockAlert   Int      @default(5)
+  weight          Decimal? @db.Decimal(8, 2) // grams
+  categoryId      String
+  subcategory     String?
+  tags            String?  @db.Text // comma-separated
+  specs           Json?    // flexible key-value specs
+  badge           String?  // "sale", "new", "flash", "bestseller"
+  isActive        Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  metaTitle       String?  @db.VarChar(160)
+  metaDescription String?  @db.VarChar(320)
+  rating          Decimal  @default(0) @db.Decimal(2, 1)
+  reviewsCount    Int      @default(0)
+  salesCount      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  category   Category       @relation(fields: [categoryId], references: [id])
+  images     ProductImage[]
+  reviews    Review[]
+  orderItems OrderItem[]
+  wishlist   WishlistItem[]
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([isActive, isFeatured])
+  @@index([badge])
+  @@index([price])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  url       String  // Cloudinary URL
+  alt       String?
+  sortOrder Int     @default(0)
+  isPrimary Boolean @default(false)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+// ============================================
+// REVIEWS
+// ============================================
+
+model Review {
+  id          String   @id @default(cuid())
+  productId   String
+  userId      String
+  rating      Int      // 1-5
+  title       String?
+  comment     String?  @db.Text
+  aiSentiment String?  // positive, negative, neutral
+  aiReply     String?  @db.Text // AI-generated reply suggestion
+  isApproved  Boolean  @default(false)
+  isVerified  Boolean  @default(false) // verified purchase
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
+  @@index([isApproved])
+}
+
+// ============================================
+// WISHLIST
+// ============================================
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+// ============================================
+// ORDERS
+// ============================================
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  BKASH
+  NAGAD
+  COD
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique // ARKIVE-XXXXXX
+  userId          String
+  addressId       String?
+  status          OrderStatus   @default(PENDING)
+  paymentMethod   PaymentMethod @default(COD)
+  paymentStatus   PaymentStatus @default(PENDING)
+  paymentRef      String?       // bKash/Nagad transaction ID
+  subtotal        Decimal       @db.Decimal(10, 2)
+  shippingCost    Decimal       @default(0) @db.Decimal(10, 2)
+  discount        Decimal       @default(0) @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+  couponCode      String?
+  trackingNumber  String?
+  trackingUrl     String?
+  notes           String?       @db.Text // customer notes
+  adminNotes      String?       @db.Text // internal notes
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user    User       @relation(fields: [userId], references: [id])
+  address Address?   @relation(fields: [addressId], references: [id])
+  items   OrderItem[]
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  name      String  // snapshot at time of order
+  price     Decimal @db.Decimal(10, 2)
+  quantity  Int
+  image     String? // snapshot
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// ============================================
+// SITE SETTINGS (Key-Value Store)
+// ============================================
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  type      String   @default("string") // string, number, boolean, json, image
+  group     String   @default("general") // general, seo, appearance, shipping
+  label     String?  // human-readable label for admin UI
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@index([group])
+}
+
+// ============================================
+// AI CHAT (Silk Assistant)
+// ============================================
+
+model AIChatSession {
+  id        String          @id @default(cuid())
+  userId    String?         // null for anonymous
+  title     String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user     User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages AIChatMessage[]
+
+  @@index([userId])
+}
+
+model AIChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String   // "user" | "assistant" | "system"
+  content   String   @db.Text
+  metadata  Json?    // product refs, actions, etc.
+  createdAt DateTime @default(now())
+
+  session AIChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+// ============================================
+// COUPONS
+// ============================================
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+model Coupon {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  description   String?
+  discountType  DiscountType @default(PERCENTAGE)
+  discountValue Decimal      @db.Decimal(10, 2)
+  minOrderValue Decimal?     @db.Decimal(10, 2)
+  maxUses       Int?
+  usedCount     Int          @default(0)
+  isActive      Boolean      @default(true)
+  startsAt      DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime     @default(now())
+
+  @@index([code])
+  @@index([isActive])
+}
