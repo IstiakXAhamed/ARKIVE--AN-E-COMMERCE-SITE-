@@ -8,6 +8,9 @@ const nextConfig = {
   // Compression handled by Apache/Passenger — disable Node zlib to save threads
   compress: false,
 
+  // Disable source maps to save memory/disk usage during build
+  productionBrowserSourceMaps: false,
+
   experimental: {
     // Limit Next.js to 1 CPU core to survive NPROC limits
     cpus: 1,
