@@ -18,7 +18,7 @@ git pull origin main
 
 if [ "$1" = "build" ]; then
   echo "🧹 Cleaning redundant configs..."
-  rm -f postcss.config.js
+  # rm -f postcss.config.js  <-- FIX: Keep this! Required for Tailwind v4
 
   echo "📦 Installing dependencies..."
   # Full install to ensure all build tools (Tailwind/PostCSS) are available
