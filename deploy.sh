@@ -29,8 +29,7 @@ if [ "$1" = "build" ]; then
   # Forces Webpack over Turbopack style worker usage via config
   NODE_OPTIONS="--max-old-space-size=2048" \
   NEXT_PRIVATE_WORKER_PARALLELISM=0 \
-  NEXT_DISABLE_WORKER_THREADS=1 \
-  NEXT_OTEL_FETCH_DISABLED=1 \
+  UV_THREADPOOL_SIZE=1 \
   npx next build --no-lint
 
   echo "🧹 Pruning dev dependencies..."
