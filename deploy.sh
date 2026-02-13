@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+
+# 0. Set project directory
+LIVE_DIR=~/ARKIVE-E-COMMERCE
+cd $LIVE_DIR
+
 # Load environment variables
 source .env
 
