@@ -23,8 +23,10 @@ git pull origin main
 echo "📦 Installing dependencies..."
 # Force clean slate to fix Prisma version mismatch
 rm -rf node_modules package-lock.json
+# Clean npm cache to prevent ETARGET errors
+npm cache clean --force
 # Use npm install to update package-lock.json for downgraded Prisma
-npm install --prefer-offline --no-audit
+npm install --no-audit
 
 # 3. Generate Prisma Client
 echo "Generating Prisma Client..."
