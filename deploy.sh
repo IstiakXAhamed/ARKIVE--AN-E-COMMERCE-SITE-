@@ -27,7 +27,7 @@ if [ "$1" = "build" ]; then
   echo "🔨 Building app (NPROC-Safe Mode)..."
   export NEXT_TELEMETRY_DISABLED=1
   # Use standard build command but with memory limits
-  NODE_OPTIONS="--max-old-space-size=2048" npm run build -- --no-lint
+  NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
   echo "🧹 Pruning dev dependencies..."
   npm prune --production
