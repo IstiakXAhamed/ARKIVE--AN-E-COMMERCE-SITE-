@@ -22,11 +22,6 @@ const nextConfig = {
     // turbo: {}, // Ensure turbo is not accidentally active if it causes issues
   },
   
-  // Disable Output File Tracing to save IO/Process usage
-  outputFileTracing: false,
-  // Disable ETag generation to save some computation
-  generateEtags: false,
-  
   // Disable type checking during build to save memory/resource
   typescript: {
     ignoreBuildErrors: true,

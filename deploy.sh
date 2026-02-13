@@ -12,9 +12,8 @@ git pull origin main
 
 # 2. Clean install dependencies
 echo "📦 Installing dependencies..."
-# Use --omit=dev for production, but we need devDeps for build (e.g. typescript, tailwind)
-# So we install all, then prune later.
-npm ci --prefer-offline --no-audit
+# Use npm install to update package-lock.json for downgraded Prisma
+npm install --prefer-offline --no-audit
 
 # 3. Generate Prisma Client
 echo "Generating Prisma Client..."

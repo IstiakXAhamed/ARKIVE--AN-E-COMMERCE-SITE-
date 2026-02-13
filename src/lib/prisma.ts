@@ -20,14 +20,13 @@ export const prisma = (() => {
   const separator = baseUrl.includes("?") ? "&" : "";
   const finalUrl = `${baseUrl}${separator}${connectionParams.replace("?", "")}`;
 
-  // Workaround for Prisma 7 "Unknown property datasources" / "requires adapter" errors:
-  // 1. We DO NOT pass 'datasources' to the constructor.
-  // 2. We DO NOT pass 'adapter' to the constructor.
-  // 3. We set the environment variable directly.
-  process.env.DATABASE_URL = finalUrl;
-
   const client = new PrismaClient({
-    // Only pass log options. Datasources are picked up from env.
+    datasources: {
+      db: {
+        url: finalUrl,
+      },
+    },
+    // Log queries in dev, only errors in prod
     log: isProduction ? ["error"] : ["query", "error", "warn"],
   });
 
