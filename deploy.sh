@@ -33,8 +33,9 @@ if [ "$1" = "build" ]; then
   # Use in-process Prisma engine to avoid spawning query-engine binary
   export PRISMA_CLIENT_ENGINE_TYPE=library
   
-  # Use standard build command but with memory limits (reduced to 1024)
-  NODE_OPTIONS="--max-old-space-size=1024" npm run build
+  # Bypass npm to save one process execution (npm -> node -> next -> node)
+  # Execute next build directly with memory constraints
+  NODE_OPTIONS="--max-old-space-size=1536" ./node_modules/.bin/next build
 
   echo "🧹 Pruning dev dependencies..."
   npm prune --production
