@@ -18,9 +18,7 @@ const nextConfig = {
   },
   
   // Disable linting and type checking during build to save memory/resource
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // Linting is handled via deploy script flag for NPROC safety
   typescript: {
     ignoreBuildErrors: true,
   },
