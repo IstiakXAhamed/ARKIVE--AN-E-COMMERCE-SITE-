@@ -14,9 +14,13 @@ source .env
 
 echo "🚀 Starting ARKIVE deployment..."
 
-# 1. Pull latest code
-echo "📥 Pulling latest code..."
-git pull origin main
+# 1. Pull latest code (unless "no-pull" arg provided)
+if [ "$1" == "no-pull" ]; then
+  echo "⏭️ Skipping git pull (manual mode)..."
+else
+  echo "📥 Pulling latest code..."
+  git pull origin main
+fi
 
 # 2. Clean install dependencies
 # 2. Clean install dependencies
