@@ -107,9 +107,20 @@ PassengerPoolIdleTime 0
     *   This will automatically run `prisma generate` due to the `postinstall` script.
     *   Run Prisma migrations: `npx prisma migrate deploy`.
 
-6.  **Restart**:
-    *   Click **Restart Application** in Node.js selector.
-    *   Or run `touch tmp/restart.txt` in terminal.
+6.  **Full Automated Deployment**:
+    *   Instead of manual steps, use the new script:
+    ```bash
+    chmod +x deploy.sh
+    ./deploy.sh build
+    ```
+
+## 3. Deployment Script (`deploy.sh`)
+We've included a specialized script that handles everything safely:
+1.  Pulls code from `main`.
+2.  Installs build dependencies.
+3.  **Critical**: Runs a sequential build (`NEXT_PRIVATE_WORKER_PARALLELISM=0`) to prevent server crashes.
+4.  Prunes development tools after the build.
+5.  Restarts the application.
 
 ## 3. Verification
 
