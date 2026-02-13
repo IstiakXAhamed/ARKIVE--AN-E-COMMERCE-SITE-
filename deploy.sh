@@ -17,6 +17,9 @@ echo "📥 Pulling latest code..."
 git pull origin main 
 
 if [ "$1" = "build" ]; then
+  echo "🧹 Cleaning redundant configs..."
+  rm -f postcss.config.js
+
   echo "📦 Installing dependencies (Production)..."
   # Use --production=false initially to get build tools
   npm install --production=false
@@ -26,6 +29,8 @@ if [ "$1" = "build" ]; then
   # Forces Webpack over Turbopack style worker usage via config
   NODE_OPTIONS="--max-old-space-size=2048" \
   NEXT_PRIVATE_WORKER_PARALLELISM=0 \
+  NEXT_DISABLE_WORKER_THREADS=1 \
+  NEXT_OTEL_FETCH_DISABLED=1 \
   npx next build
 
   echo "🧹 Pruning dev dependencies..."
