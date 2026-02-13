@@ -1,5 +1,4 @@
 import { PrismaClient } from "../../prisma/generated/prisma/client";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -11,23 +10,27 @@ const isProduction = process.env.NODE_ENV === "production";
 export const prisma = (() => {
   if (globalForPrisma.prisma) return globalForPrisma.prisma;
 
+  // Environment-aware connection configuration
+  const connectionParams = isProduction 
+    ? "?connection_limit=1&pool_timeout=5"
+    : "?connection_limit=5&pool_timeout=10";
+
   const baseUrl = process.env.DATABASE_URL || "";
-  
-  // MariaDB adapter requires mariadb:// protocol, convert from mysql:// if needed
-  let dbUrl = baseUrl;
-  if (dbUrl.startsWith("mysql://")) {
-    dbUrl = "mariadb://" + dbUrl.slice(8); // replace mysql:// with mariadb://
-  }
-  
-  // Use MariaDB adapter for driver-based connection
-  const adapter = new PrismaMariaDb(dbUrl);
+  // Ensure we don't duplicate query params if they already exist
+  const separator = baseUrl.includes("?") ? "&" : "";
+  const finalUrl = `${baseUrl}${separator}${connectionParams.replace("?", "")}`;
 
   const client = new PrismaClient({
-    adapter,
+    datasources: {
+      db: {
+        url: finalUrl,
+      },
+    },
+    // Log queries in dev, only errors in prod
     log: isProduction ? ["error"] : ["query", "error", "warn"],
   });
 
-  if (process.env.NODE_ENV !== "production") {
+  if (!isProduction) {
     globalForPrisma.prisma = client;
   }
 
