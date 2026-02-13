@@ -28,7 +28,12 @@ if [ "$1" = "build" ]; then
   export NEXT_TELEMETRY_DISABLED=1
   # Limit Node.js internal thread pool
   export UV_THREADPOOL_SIZE=1
-  # Use standard build command but with memory limits (reduced to 1536 to prevent OOM-kills blocking spawn)
+  # Force Next.js to use single CPU to prevent worker spawning
+  export NEXT_CPU_COUNT=1
+  # Use in-process Prisma engine to avoid spawning query-engine binary
+  export PRISMA_CLIENT_ENGINE_TYPE=library
+  
+  # Use standard build command but with memory limits (reduced to 1024)
   NODE_OPTIONS="--max-old-space-size=1024" npm run build
 
   echo "🧹 Pruning dev dependencies..."
