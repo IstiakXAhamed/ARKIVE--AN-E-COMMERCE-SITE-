@@ -21,18 +21,13 @@ if [ "$1" = "build" ]; then
   # rm -f postcss.config.js  <-- FIX: Keep this! Required for Tailwind v4
 
   echo "📦 Installing dependencies..."
-  # Full install to ensure all build tools (Tailwind/PostCSS) are available
-  npm install
-
+  # Install ALL dependencies (including devDependencies) so Tailwind/PostCSS work
+  npm install --production=false
 
   echo "🔨 Building app (NPROC-Safe Mode)..."
-  # Disable parallelism to prevent server crash (EAGAIN)
-  # Forces Webpack over Turbopack style worker usage via config
   export NEXT_TELEMETRY_DISABLED=1
-  NODE_OPTIONS="--max-old-space-size=2048" \
-  NEXT_PRIVATE_WORKER_PARALLELISM=0 \
-  UV_THREADPOOL_SIZE=1 \
-  npx next build --no-lint
+  # Use standard build command but with memory limits
+  NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
   echo "🧹 Pruning dev dependencies..."
   npm prune --production
