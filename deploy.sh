@@ -40,7 +40,9 @@ if [ "$1" = "build" ]; then
   
   # Build with experimental compile mode to skip static page generation
   # This avoids the EAGAIN error from spawning workers during "Collecting page data"
+  # Run compile first, then generate to finalize
   ./node_modules/.bin/next build --experimental-build-mode compile
+  ./node_modules/.bin/next build --experimental-build-mode generate
 
   echo "🧹 Pruning dev dependencies..."
   npm prune --production
