@@ -1,4 +1,5 @@
 import { PrismaClient } from "../../prisma/generated/prisma/client";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -26,7 +27,11 @@ export const prisma = (() => {
   // Actually, let's just use the URL as provided for now, but if it helps, we can append.
   // For MySQL/MariaDB, connection_limit is valid.
   
+  // Use MariaDB adapter for driver-based connection
+  const adapter = new PrismaMariaDb(baseUrl);
+
   const client = new PrismaClient({
+    adapter,
     log: isProduction ? ["error"] : ["query", "error", "warn"],
   });
 
