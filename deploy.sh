@@ -20,9 +20,10 @@ if [ "$1" = "build" ]; then
   echo "🧹 Cleaning redundant configs..."
   rm -f postcss.config.js
 
-  echo "📦 Installing dependencies (Production)..."
-  # Use --production=false initially to get build tools
-  npm install --production=false
+  echo "📦 Installing dependencies..."
+  # Full install to ensure all build tools (Tailwind/PostCSS) are available
+  npm install
+
 
   echo "🔨 Building app (NPROC-Safe Mode)..."
   # Disable parallelism to prevent server crash (EAGAIN)
