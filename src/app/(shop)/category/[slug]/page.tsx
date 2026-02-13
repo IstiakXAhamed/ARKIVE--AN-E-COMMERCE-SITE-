@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { ProductGrid } from "@/components/store/ProductGrid";
-import { demoProducts, categories } from "@/lib/data";
+import { getProductsByCategory } from "@/lib/db/products";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
@@ -8,21 +9,28 @@ interface CategoryPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const categories = await prisma.category.findMany({ select: { slug: true } });
   return categories.map((cat) => ({ slug: cat.slug }));
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
-  const category = categories.find((c) => c.slug === slug);
+  
+  const category = await prisma.category.findUnique({
+    where: { slug },
+    include: {
+      _count: {
+        select: { products: true }
+      }
+    }
+  });
 
   if (!category) {
     notFound();
   }
 
-  const categoryProducts = demoProducts.filter(
-    (p) => p.categorySlug === slug
-  );
+  const categoryProducts = await getProductsByCategory(slug);
 
   return (
     <>
@@ -56,7 +64,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 {category.name}
               </h1>
               <p className="text-gray-500 mt-1 text-sm md:text-base">
-                {category.count}+ products available
+                {category._count.products}+ products available
               </p>
             </div>
           </div>

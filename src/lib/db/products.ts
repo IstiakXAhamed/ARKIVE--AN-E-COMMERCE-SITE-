@@ -51,11 +51,8 @@ export async function getProducts(): Promise<ProductData[]> {
 
     return products.map(mapProductToData);
   } catch (error) {
-    console.warn("Database not connected, using demo products");
-    return demoProducts.map((p) => ({
-      ...p,
-      id: String(p.id),
-    })) as ProductData[];
+    console.error("Error fetching products:", error);
+    return [];
   }
 }
 
@@ -75,13 +72,8 @@ export async function getProductBySlug(slug: string): Promise<ProductData | null
     if (!product) return null;
     return mapProductToData(product);
   } catch (error) {
-    console.warn("Database not connected, using demo products");
-    const product = demoProducts.find((p) => p.slug === slug);
-    if (!product) return null;
-    return {
-      ...product,
-      id: String(product.id),
-    } as ProductData;
+    console.error("Error fetching product by slug:", error);
+    return null;
   }
 }
 
@@ -104,13 +96,8 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
 
     return products.map(mapProductToData);
   } catch (error) {
-    console.warn("Database not connected, using demo products");
-    return demoProducts
-      .filter((p) => p.categorySlug === categorySlug)
-      .map((p) => ({
-        ...p,
-        id: String(p.id),
-      })) as ProductData[];
+    console.error("Error fetching products by category:", error);
+    return [];
   }
 }
 
@@ -131,14 +118,8 @@ export async function getFeaturedProducts(): Promise<ProductData[]> {
 
     return products.map(mapProductToData);
   } catch (error) {
-    console.warn("Database not connected, using demo products");
-    return demoProducts
-      .filter((p) => p.badge === "new" || p.badge === "sale")
-      .slice(0, 8)
-      .map((p) => ({
-        ...p,
-        id: String(p.id),
-      })) as ProductData[];
+    console.error("Error fetching featured products:", error);
+    return [];
   }
 }
 
@@ -159,14 +140,8 @@ export async function getFlashSaleProducts(): Promise<ProductData[]> {
 
     return products.map(mapProductToData);
   } catch (error) {
-    console.warn("Database not connected, using demo products");
-    return demoProducts
-      .filter((p) => p.badge === "flash")
-      .slice(0, 4)
-      .map((p) => ({
-        ...p,
-        id: String(p.id),
-      })) as ProductData[];
+    console.error("Error fetching flash sale products:", error);
+    return [];
   }
 }
 
@@ -191,14 +166,8 @@ export async function getRelatedProducts(categorySlug: string, currentSlug: stri
 
     return products.map(mapProductToData);
   } catch (error) {
-    console.warn("Database not connected, using demo products");
-    return demoProducts
-      .filter((p) => p.categorySlug === categorySlug && p.slug !== currentSlug)
-      .slice(0, limit)
-      .map((p) => ({
-        ...p,
-        id: String(p.id),
-      })) as ProductData[];
+    console.error("Error fetching related products:", error);
+    return [];
   }
 }
 
@@ -219,13 +188,8 @@ export async function getNewArrivals(limit = 8): Promise<ProductData[]> {
 
     return products.map(mapProductToData);
   } catch (error) {
-    console.warn("Database not connected, using demo products");
-    return demoProducts
-      .slice(0, limit)
-      .map((p) => ({
-        ...p,
-        id: String(p.id),
-      })) as ProductData[];
+    console.error("Error fetching new arrivals:", error);
+    return [];
   }
 }
 
@@ -253,16 +217,7 @@ export async function searchProducts(query: string): Promise<ProductData[]> {
 
     return products.map(mapProductToData);
   } catch (error) {
-    console.warn("Database not connected, using demo products");
-    return demoProducts
-      .filter(
-        (p) =>
-          p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.category.toLowerCase().includes(query.toLowerCase())
-      )
-      .map((p) => ({
-        ...p,
-        id: String(p.id),
-      })) as ProductData[];
+    console.error("Error searching products:", error);
+    return [];
   }
 }

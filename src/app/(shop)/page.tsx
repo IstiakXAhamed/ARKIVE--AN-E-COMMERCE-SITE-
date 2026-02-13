@@ -2,7 +2,8 @@ import { HeroSection } from "@/components/store/HeroSection";
 import { CategoryGrid } from "@/components/store/CategoryGrid";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { FlashSale } from "@/components/store/FlashSale";
-import { demoProducts, categories } from "@/lib/data";
+import { getCategoriesWithCounts } from "@/lib/db/categories";
+import { getFeaturedProducts, getNewArrivals, getFlashSaleProducts } from "@/lib/db/products";
 
 function TestimonialsSection() {
   const testimonials = [
@@ -77,10 +78,13 @@ function TestimonialsSection() {
   );
 }
 
-export default function HomePage() {
-  const featuredProducts = demoProducts
-    .filter((p) => p.badge === "new" || p.badge === "sale")
-    .slice(0, 8);
+export default async function HomePage() {
+  const [categories, featuredProducts, newArrivals, flashSaleProducts] = await Promise.all([
+    getCategoriesWithCounts(),
+    getFeaturedProducts(),
+    getNewArrivals(),
+    getFlashSaleProducts(),
+  ]);
 
   return (
     <>
@@ -88,7 +92,7 @@ export default function HomePage() {
 
       <CategoryGrid categories={categories} />
 
-      <FlashSale products={demoProducts} />
+      {flashSaleProducts.length > 0 && <FlashSale products={flashSaleProducts} />}
 
       <ProductGrid
         products={featuredProducts}
@@ -98,7 +102,7 @@ export default function HomePage() {
 
       <div className="bg-gray-50">
         <ProductGrid
-          products={demoProducts}
+          products={newArrivals}
           title="New Arrivals"
           subtitle="The latest additions to our collection"
         />
