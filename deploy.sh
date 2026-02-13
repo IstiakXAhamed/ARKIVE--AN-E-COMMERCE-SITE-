@@ -19,7 +19,10 @@ echo "📥 Pulling latest code..."
 git pull origin main
 
 # 2. Clean install dependencies
+# 2. Clean install dependencies
 echo "📦 Installing dependencies..."
+# Force clean slate to fix Prisma version mismatch
+rm -rf node_modules package-lock.json
 # Use npm install to update package-lock.json for downgraded Prisma
 npm install --prefer-offline --no-audit
 
