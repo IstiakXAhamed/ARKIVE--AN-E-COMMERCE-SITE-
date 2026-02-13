@@ -3,8 +3,9 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 
-// Force dynamic rendering to prevent EAGAIN errors during build
-export const dynamic = "force-dynamic";
+// Force dynamic rendering to reduce build memory usage on shared hosting
+export const dynamicParams = true;
+export const revalidate = 0;
 
 const inter = Inter({
   subsets: ["latin"],

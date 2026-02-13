@@ -11,17 +11,13 @@ const nextConfig = {
   // Disable source maps to save memory/disk usage during build
   productionBrowserSourceMaps: false,
 
-  // CRITICAL: Disable static page generation to prevent EAGAIN errors
-  // All pages will be server-rendered on-demand
-  output: 'standalone',
-
   experimental: {
     // Limit Next.js to 1 CPU core to survive NPROC limits
     cpus: 1,
     // Disable worker threads to reduce concurrent context-switching during build
     workerThreads: false,
-    // Disable build-time workers completely
-    optimizePackageImports: [],
+    // Optimize package imports for smaller bundles
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
   
   // Disable linting and type checking during build to save memory/resource

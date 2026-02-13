@@ -5,9 +5,6 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
-// Force dynamic rendering - no static build
-export const dynamic = "force-dynamic";
-
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
 }
