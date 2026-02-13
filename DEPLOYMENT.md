@@ -85,7 +85,7 @@ PassengerPoolIdleTime 0
 2.  **Upload Files**:
     *   Upload the contents of `arkive-modern` to the Application Root folder (e.g., `public_html`).
     *   **Exclude**: `node_modules`, `.git`, `.next`.
-    *   **Include**: `.next/standalone` contents (see below), `public`, `prod-server.js`, `package.json`, `.htaccess`, `.env`.
+    *   **Include**: `.next/standalone` contents (see below), `public`, `app.js`, `package.json`, `.htaccess`, `.env`.
 
 3.  **Standalone Build (Optimization)**:
     *   Locally run: `npm run build`.
@@ -104,6 +104,7 @@ PassengerPoolIdleTime 0
 
 5.  **Install Dependencies**:
     *   In cPanel, click **Run NPM Install** (or run `npm install` in terminal).
+    *   This will automatically run `prisma generate` due to the `postinstall` script.
     *   Run Prisma migrations: `npx prisma migrate deploy`.
 
 6.  **Restart**:
