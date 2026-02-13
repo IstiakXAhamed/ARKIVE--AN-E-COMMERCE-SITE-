@@ -28,10 +28,11 @@ if [ "$1" = "build" ]; then
   echo "🔨 Building app (NPROC-Safe Mode)..."
   # Disable parallelism to prevent server crash (EAGAIN)
   # Forces Webpack over Turbopack style worker usage via config
+  export NEXT_TELEMETRY_DISABLED=1
   NODE_OPTIONS="--max-old-space-size=2048" \
   NEXT_PRIVATE_WORKER_PARALLELISM=0 \
   UV_THREADPOOL_SIZE=1 \
-  npx next build
+  npx next build --no-lint
 
   echo "🧹 Pruning dev dependencies..."
   npm prune --production
