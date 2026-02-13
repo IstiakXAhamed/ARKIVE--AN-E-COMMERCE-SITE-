@@ -30,7 +30,7 @@ if [ "$1" = "build" ]; then
   NODE_OPTIONS="--max-old-space-size=2048" \
   NEXT_PRIVATE_WORKER_PARALLELISM=0 \
   UV_THREADPOOL_SIZE=1 \
-  npx next build --no-lint
+  npx next build
 
   echo "🧹 Pruning dev dependencies..."
   npm prune --production
