@@ -6,8 +6,8 @@ This guide details exactly how to deploy the ARKIVE Next.js application to cPane
 
 Ensure you have the following files created/updated in your local project before uploading.
 
-### A. Custom Server (`prod-server.js`)
-Create this file in the root of `arkive-modern/`. It replaces `next start` and prevents LiteSpeed from spawning multiple processes.
+### A. Custom Server (`app.js`)
+Ensure `app.js` is present in the root. This file is critical for handling NPROC limits on cPanel.
 
 ```javascript
 const { createServer } = require('http');
@@ -38,7 +38,7 @@ Update the `scripts` section in `package.json` to use the custom server for prod
 ```json
 "scripts": {
   "build": "next build",
-  "start": "NODE_ENV=production node prod-server.js"
+  "start": "NODE_ENV=production node app.js"
 }
 ```
 
@@ -51,7 +51,7 @@ PassengerAppRoot "/home/yourusername/public_html"
 PassengerBaseURI "/"
 PassengerNodejs "/home/yourusername/nodevenv/public_html/20/bin/node"
 PassengerAppType node
-PassengerStartupFile prod-server.js
+PassengerStartupFile app.js
 
 # CRITICAL: Prevent NPROC limit violations
 PassengerMinInstances 1

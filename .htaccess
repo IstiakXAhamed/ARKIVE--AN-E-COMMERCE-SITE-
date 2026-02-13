@@ -2,7 +2,7 @@
 # Place this file in the public_html directory (or subdomain root)
 
 PassengerAppType node
-PassengerStartupFile prod-server.js
+PassengerStartupFile app.js
 PassengerMaxInstances 1
 
 # Force HTTPS
