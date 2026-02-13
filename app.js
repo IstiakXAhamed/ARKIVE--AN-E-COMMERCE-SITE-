@@ -52,7 +52,7 @@ const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
 
-const port = parseInt(process.env.PORT, 10) || 3000;
+const port = process.env.PORT || 3000;
 const dev = false;
 const app = next({ dev, dir: __dirname });
 const handle = app.getRequestHandler();
@@ -74,7 +74,7 @@ app.prepare().then(() => {
   server.headersTimeout = 6000;
 
   server.listen(port, () => {
-    console.log(`[PID ${process.pid}] ARKIVE ready on port ${port}`);
+    console.log(`[PID ${process.pid}] ARKIVE ready on: ${port}`);
   });
 }).catch((err) => {
   console.error('FATAL:', err);
