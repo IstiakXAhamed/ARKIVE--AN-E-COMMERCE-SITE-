@@ -20,13 +20,9 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
   
-  // Disable linting and type checking during build to save memory/resource
-  // Linting is handled via deploy script flag for NPROC safety
+  // Disable type checking during build to save memory/resource
   typescript: {
     ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
   // Increase timeout for static page generation to survive shared hosting limits
   staticPageGenerationTimeout: 300,

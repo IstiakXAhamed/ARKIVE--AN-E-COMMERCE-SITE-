@@ -25,17 +25,22 @@ if [ "$1" = "build" ]; then
   npm install --production=false
 
   echo "🔨 Building app (NPROC-Safe Mode)..."
+  # Completely disable any process spawning
   export NEXT_TELEMETRY_DISABLED=1
-  # Limit Node.js internal thread pool
   export UV_THREADPOOL_SIZE=1
-  # Force Next.js to use single CPU to prevent worker spawning
   export NEXT_CPU_COUNT=1
-  # Use in-process Prisma engine to avoid spawning query-engine binary
   export PRISMA_CLIENT_ENGINE_TYPE=library
+  # Disable Turbopack to use webpack with single thread
+  export TURBOPACK=0
+  export NEXT_WEBPACK_USEPOLLING=0
+  # Disable webpack persistent caching (reduces disk/memory usage)
+  export NEXT_WEBPACK_FS_CACHE=0
+  # Force single worker for everything
+  export NODE_OPTIONS="--max-old-space-size=1024 --no-warnings"
   
-  # Bypass npm to save process overhead
-  # Next.js 16 build with explicit no-linting in config and constrained resources
-  NODE_OPTIONS="--max-old-space-size=1024 --no-warnings" ./node_modules/.bin/next build
+  # Build with experimental compile mode to skip static page generation
+  # This avoids the EAGAIN error from spawning workers during "Collecting page data"
+  ./node_modules/.bin/next build --experimental-build-mode compile
 
   echo "🧹 Pruning dev dependencies..."
   npm prune --production
