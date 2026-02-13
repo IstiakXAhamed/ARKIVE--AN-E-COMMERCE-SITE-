@@ -2,8 +2,7 @@ const nextConfig = {
   // Enable React strict mode for better development experience
   reactStrictMode: true,
   
-  // Enable SWC minification (explicitly)
-  swcMinify: true,
+
   
   // Optimize page loading
   poweredByHeader: false,
