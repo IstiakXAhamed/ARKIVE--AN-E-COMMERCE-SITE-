@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Ensure CloudLinux Node.js is in PATH
+export PATH=/opt/alt/alt-nodejs20/root/usr/bin:$PATH
+
 
 # 0. Set project directory
 LIVE_DIR=~/ARKIVE-E-COMMERCE
