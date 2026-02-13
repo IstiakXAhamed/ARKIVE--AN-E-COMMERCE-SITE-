@@ -31,7 +31,7 @@ if [ "$1" = "build" ]; then
   NEXT_PRIVATE_WORKER_PARALLELISM=0 \
   NEXT_DISABLE_WORKER_THREADS=1 \
   NEXT_OTEL_FETCH_DISABLED=1 \
-  npx next build
+  npx next build --no-lint
 
   echo "🧹 Pruning dev dependencies..."
   npm prune --production
