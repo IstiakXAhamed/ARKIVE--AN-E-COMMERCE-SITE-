@@ -17,7 +17,7 @@ const nextConfig = {
     // Disable worker threads to reduce concurrent context-switching during build
     workerThreads: false,
     // Optimize package imports
-    optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts'],
+    // optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts'],
   },
   
   // Disable linting and type checking during build to save memory/resource

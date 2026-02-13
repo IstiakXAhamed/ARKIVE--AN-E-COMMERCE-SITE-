@@ -29,7 +29,7 @@ if [ "$1" = "build" ]; then
   # Limit Node.js internal thread pool
   export UV_THREADPOOL_SIZE=1
   # Use standard build command but with memory limits (reduced to 1536 to prevent OOM-kills blocking spawn)
-  NODE_OPTIONS="--max-old-space-size=1536" npm run build
+  NODE_OPTIONS="--max-old-space-size=1024" npm run build
 
   echo "🧹 Pruning dev dependencies..."
   npm prune --production
