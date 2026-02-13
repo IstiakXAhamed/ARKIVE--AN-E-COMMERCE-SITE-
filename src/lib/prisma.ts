@@ -20,12 +20,11 @@ export const prisma = (() => {
   const separator = baseUrl.includes("?") ? "&" : "";
   const finalUrl = `${baseUrl}${separator}${connectionParams.replace("?", "")}`;
 
+  // Workaround for "Unknown property datasources" error in Prisma 7:
+  // Set the environment variable directly before instantiation.
+  process.env.DATABASE_URL = finalUrl;
+
   const client = new PrismaClient({
-    datasources: {
-      db: {
-        url: finalUrl,
-      },
-    },
     // Log queries in dev, only errors in prod
     log: isProduction ? ["error"] : ["query", "error", "warn"],
   });
