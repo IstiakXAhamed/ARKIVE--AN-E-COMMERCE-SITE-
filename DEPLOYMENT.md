@@ -116,3 +116,18 @@ PassengerPoolIdleTime 0
 *   Check Process Count via Terminal: `ps aux | grep node` (Should be 1 or 2 max).
 *   Check Logs: `stderr.log` in your app root if errors occur.
 
+---
+
+## 4. Troubleshooting
+
+### "Cloudlinux NodeJS Selector demands... symlink called 'node_modules'"
+**Error**: Happens when a real `node_modules` folder exists, blocking the Node selector's managed symlink.
+**Fix**:
+1. Delete the real folder: `rm -rf node_modules`
+2. Run `npm install` again via cPanel or terminal.
+
+### "spawn EAGAIN" (Build Crash)
+**Error**: Hitting NPROC (Process) limits during build.
+**Fix**: Use the sequential build command:
+`NEXT_PRIVATE_WORKER_PARALLELISM=0 npx next build --no-turbopack`
+
