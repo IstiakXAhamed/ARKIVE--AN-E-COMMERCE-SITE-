@@ -28,11 +28,7 @@ rm -rf node_modules package-lock.json
 npm cache clean --force
 npm install --no-audit --legacy-peer-deps
 
-# 5. Generate Prisma Client
-echo "Generating Prisma Client..."
-npx prisma generate
-
-# 6. Build Application (NPROC-Safe Mode)
+# 5. Build Application (NPROC-Safe Mode)
 echo "hammer_and_wrench Building app..."
 
 # Export Critical Resource Limits
