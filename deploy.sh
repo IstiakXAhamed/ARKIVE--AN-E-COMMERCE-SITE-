@@ -26,7 +26,7 @@ echo "📦 Installing dependencies (Sequential)..."
 # Force a clean install to ensure stable versions are used
 rm -rf node_modules package-lock.json
 npm cache clean --force
-npm install --no-audit
+npm install --no-audit --legacy-peer-deps
 
 # 5. Generate Prisma Client
 echo "Generating Prisma Client..."
