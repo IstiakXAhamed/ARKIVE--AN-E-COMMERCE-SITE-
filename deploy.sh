@@ -1,72 +1,54 @@
 #!/bin/bash
 set -e
 
-# Ensure CloudLinux Node.js is in PATH
-export PATH=/opt/alt/alt-nodejs20/root/usr/bin:$PATH
-
-
-# 0. Set project directory
+# 0. Core Configuration (SilkMart Style)
 LIVE_DIR=~/ARKIVE-E-COMMERCE
-cd $LIVE_DIR
-
-# Load environment variables
-source .env
+NODE_BIN=/opt/alt/alt-nodejs20/root/usr/bin
+export PATH=$NODE_BIN:$PATH
 
 echo "🚀 Starting ARKIVE deployment..."
 
-# 1. Pull latest code (unless "no-pull" arg provided)
-if [ "$1" == "no-pull" ]; then
-  echo "⏭️ Skipping git pull (manual mode)..."
-else
-  echo "📥 Pulling latest code..."
-  git pull origin main
+# 1. Navigate to Project Directory
+cd "$LIVE_DIR"
+
+# 2. Force Sync with Repository (Fixes "local changes" errors)
+echo "📥 pulling latest code..."
+git fetch origin main
+git reset --hard origin/main
+
+# 3. Load Environment (after pull to get latest .env.example if needed, though .env is local)
+if [ -f .env ]; then
+  source .env
 fi
 
-# 2. Clean install dependencies
+# 4. Install Dependencies
 echo "📦 Installing dependencies..."
-# Force clean slate to fix Prisma version mismatch
-rm -rf node_modules package-lock.json
-# Clean npm cache to prevent ETARGET errors
-npm cache clean --force
-# Use npm install to update package-lock.json for downgraded Prisma
-npm install --no-audit
+# Use npm install to ensure package-lock.json is in sync with Prisma 5.20.0
+npm install --production=false
 
-# 3. Generate Prisma Client
+# 5. Generate Prisma Client
 echo "Generating Prisma Client..."
 npx prisma generate
 
-# 4. Build application with strict resource limits
-echo "hammer_and_wrench Building app (NPROC-Safe Mode)..."
+# 6. Build Application (NPROC-Safe Mode)
+echo "hammer_and_wrench Building app..."
 
-# Limit libuv threadpool (default is 4)
+# Export Critical Resource Limits
+export NEXT_TELEMETRY_DISABLED=1
 export UV_THREADPOOL_SIZE=1
-
-# Limit Next.js build workers
 export NEXT_CPU_COUNT=1
+export NODE_OPTIONS="--max-old-space-size=1024 --no-warnings"
 
-# Disable Source Maps (redundant if in next.config.ts but safe to add)
-export GENERATE_SOURCEMAP=false
+# Run Build
+./node_modules/.bin/next build
 
-# Node memory limit (conservative for shared hosting)
-# Use direct binary to bypass npm process overhead
-NODE_OPTIONS="--max-old-space-size=1024 --no-warnings" ./node_modules/.bin/next build
-
-# 5. Prune dev dependencies
-# FIX: Use --omit=dev instead of npm prune to avoid EAGAIN spawn error
-# npm prune spawns extra processes and hits NPROC limit on CloudLinux
+# 7. Cleanup
 echo "🧹 Pruning dev dependencies..."
-npm install --omit=dev
+npm prune --production
 
-# 6. Restart Application via Passenger
+# 8. Restart Application
 echo "♻️ Restarting app via Passenger..."
 mkdir -p tmp
 touch tmp/restart.txt
-
-# Wait for restart
-echo "⏳ Waiting 5 seconds for restart..."
-sleep 5
-
-echo "📊 Active Node processes:"
-pgrep -a node || echo "No node processes found (Passenger might be starting)"
 
 echo "✅ Deployment complete! Site is live at https://arkivee.com"

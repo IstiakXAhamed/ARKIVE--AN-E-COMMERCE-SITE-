@@ -20,10 +20,12 @@ export const prisma = (() => {
   const separator = baseUrl.includes("?") ? "&" : "";
   const finalUrl = `${baseUrl}${separator}${connectionParams.replace("?", "")}`;
 
-  // Force the optimized URL into the environment for Prisma to pick up automatically
-  process.env.DATABASE_URL = finalUrl;
-
   const client = new PrismaClient({
+    datasources: {
+      db: {
+        url: finalUrl,
+      },
+    },
     // Only log errors in production to save I/O
     log: isProduction ? ["error"] : ["query", "error", "warn"],
   });
