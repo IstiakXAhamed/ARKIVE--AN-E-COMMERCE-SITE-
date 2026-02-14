@@ -28,14 +28,19 @@ rm -rf node_modules package-lock.json
 npm cache clean --force
 npm install --no-audit --legacy-peer-deps
 
-# 5. Build Application (NPROC-Safe Mode)
+# 5. Generate Prisma Client
+echo "Generating Prisma Client..."
+npx prisma generate --no-engine
+
+# 6. Build Application (NPROC-Safe Mode)
 echo "hammer_and_wrench Building app..."
 
 # Export Critical Resource Limits
 export NEXT_TELEMETRY_DISABLED=1
 export UV_THREADPOOL_SIZE=1
 export NEXT_CPU_COUNT=1
-export NODE_OPTIONS="--max-old-space-size=1024 --no-warnings"
+# Use SilkLock to protect spawned workers
+export NODE_OPTIONS="-r ./silk-lock.js --max-old-space-size=1024 --no-warnings"
 
 # Run Build
 ./node_modules/.bin/next build
