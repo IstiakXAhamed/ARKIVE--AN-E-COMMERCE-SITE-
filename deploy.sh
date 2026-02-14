@@ -46,8 +46,10 @@ export NODE_OPTIONS="-r ./silk-lock.js --max-old-space-size=1024 --no-warnings"
 ./node_modules/.bin/next build
 
 # 7. Cleanup
-echo "🧹 Pruning dev dependencies..."
-npm prune --omit=dev --legacy-peer-deps
+# 7. Cleanup
+echo "🧹 Skipping prune to preserve peer deps..."
+# npm prune --omit=dev --legacy-peer-deps
+
 
 # 8. Restart Application
 echo "♻️ Restarting app via Passenger..."
