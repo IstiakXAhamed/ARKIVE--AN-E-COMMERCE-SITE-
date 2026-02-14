@@ -23,7 +23,6 @@ else
 fi
 
 # 2. Clean install dependencies
-# 2. Clean install dependencies
 echo "📦 Installing dependencies..."
 # Force clean slate to fix Prisma version mismatch
 rm -rf node_modules package-lock.json
@@ -53,8 +52,10 @@ export GENERATE_SOURCEMAP=false
 NODE_OPTIONS="--max-old-space-size=1024 --no-warnings" ./node_modules/.bin/next build
 
 # 5. Prune dev dependencies
+# FIX: Use --omit=dev instead of npm prune to avoid EAGAIN spawn error
+# npm prune spawns extra processes and hits NPROC limit on CloudLinux
 echo "🧹 Pruning dev dependencies..."
-npm prune --production
+npm install --omit=dev
 
 # 6. Restart Application via Passenger
 echo "♻️ Restarting app via Passenger..."

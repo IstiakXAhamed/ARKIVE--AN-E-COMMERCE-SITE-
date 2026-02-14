@@ -38,14 +38,13 @@ if [ "$1" = "build" ]; then
   # Force single worker for everything
   export NODE_OPTIONS="--max-old-space-size=1024 --no-warnings"
   
-  # Build with experimental compile mode to skip static page generation
-  # This avoids the EAGAIN error from spawning workers during "Collecting page data"
-  # Run compile first, then generate to finalize
-  ./node_modules/.bin/next build --experimental-build-mode compile
-  ./node_modules/.bin/next build --experimental-build-mode generate
+  # Build in single mode - avoid experimental modes that spawn extra processes
+  ./node_modules/.bin/next build
 
   echo "🧹 Pruning dev dependencies..."
-  npm prune --production
+  # FIX: Use --omit=dev instead of npm prune to avoid EAGAIN spawn error
+  # npm prune spawns extra processes and hits NPROC limit on CloudLinux
+  npm install --omit=dev
 else
   echo "⏭️ Skipping build (run './deploy.sh build' for full update)"
 fi
