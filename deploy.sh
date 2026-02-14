@@ -21,10 +21,12 @@ if [ -f .env ]; then
   source .env
 fi
 
-# 4. Install Dependencies
-echo "📦 Installing dependencies..."
-# Use npm install to ensure package-lock.json is in sync with Prisma 5.20.0
-npm install --production=false
+# 4. Clean Install & Build
+echo "📦 Installing dependencies (Sequential)..."
+# Force a clean install to ensure stable versions are used
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install --no-audit
 
 # 5. Generate Prisma Client
 echo "Generating Prisma Client..."

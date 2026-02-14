@@ -18,8 +18,6 @@ const nextConfig = {
     workerThreads: false,
     // Optimize package imports
     optimizePackageImports: ['lucide-react', 'framer-motion'],
-    // Disable heavy optimizations on shared hosting
-    // turbo: {}, // Ensure turbo is not accidentally active if it causes issues
   },
   
   // Disable type checking during build to save memory/resource
