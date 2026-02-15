@@ -33,8 +33,8 @@ if [ "$1" = "build" ]; then
   npm cache clean --force
   
   # CRITICAL: Always use --legacy-peer-deps for React 19 compatibility
-  # Using || true to prevent script exit on minor warnings, but still capture errors
-  npm install --legacy-peer-deps --no-audit --omit=dev
+  # We install ALL dependencies first because we need them to BUILD the app.
+  npm install --legacy-peer-deps --no-audit
 
   echo "🗄️  Running Database Migrations..."
   # CRITICAL: Updates your live database schema without data loss
