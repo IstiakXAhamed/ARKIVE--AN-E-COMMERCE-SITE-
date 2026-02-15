@@ -26,45 +26,36 @@ git reset --hard origin/$BRANCH
 
 # 3. Conditional Build Step
 if [ "$1" = "build" ]; then
-  echo "📦 Installing dependencies (with legacy-peer-deps to fix React 19 issues)..."
-  
-  # Clean install to ensure stability
-  rm -rf node_modules package-lock.json
-  npm cache clean --force
-  
-  # CRITICAL: Always use --legacy-peer-deps for React 19 compatibility
-  # We install ALL dependencies first because we need them to BUILD the app.
+  echo "📦 Updating dependencies..."
+  # Optimized install: No cache clean or rm -rf unless needed.
+  # Using --legacy-peer-deps for React 19 compatibility.
   npm install --legacy-peer-deps --no-audit
 
   echo "🗄️  Syncing Database Schema..."
-  # Use db push because there are no migration files in the project.
-  # --accept-data-loss is used because it's a non-interactive shell.
   npx prisma db push --accept-data-loss
 
   echo "🔄 Generating Prisma Client..."
-  # Explicitly generate client to be safe
   npx prisma generate
 
   echo "🏗️  Building Next.js application..."
   
-  # Resource Limits for Shared Hosting
+  # CRITICAL NPROC PROTECTION: Prevent spawning dozens of worker processes
+  # This ensures the build stays within cPanel limits (usually 50 NPROC)
   export NEXT_TELEMETRY_DISABLED=1
-  export UV_THREADPOOL_SIZE=1
   export NEXT_CPU_COUNT=1
+  export NEXT_PRIVATE_WORKER_PARALLELISM=0
+  export UV_THREADPOOL_SIZE=1
   
-  # Increase memory for build process (4GB)
-  # Keeping silk-lock reference if you have it, otherwise just use standard options
-  if [ -f "./silk-lock.js" ]; then
-      export NODE_OPTIONS="-r ./silk-lock.js --max-old-space-size=4096 --no-warnings"
-  else
-      export NODE_OPTIONS="--max-old-space-size=4096"
-  fi
+  # Increase memory but restrict cores
+  export NODE_OPTIONS="--max-old-space-size=4096"
+  
+  # Kill any stray next-server processes from previous failed runs to free up NPROC
+  pkill -u $(whoami) -f "next-server" || true
+  pkill -u $(whoami) -f "next-render" || true
   
   npm run build
 
   echo "🧹 Cleaning up..."
-  # Remove devDependencies to save space/memory in production
-  # Note: Be careful with pruning if you have peer deps issues
   npm prune --production --legacy-peer-deps
 else
   echo "⏭️  Skipping build/migration (Fast Deploy Mode)"
