@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.GOOGLE_AI_API_KEY) {
       // Fallback response when API key is not configured
       return NextResponse.json({
         reply: "I'm Silk, your ARKIVE shopping assistant! I'm currently being set up. Please check back soon, or browse our beautiful collection in the meantime. 💎",

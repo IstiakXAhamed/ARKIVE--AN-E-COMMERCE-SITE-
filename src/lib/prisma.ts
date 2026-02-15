@@ -17,7 +17,7 @@ export const prisma = (() => {
 
   const baseUrl = process.env.DATABASE_URL || "";
   // Ensure we don't duplicate query params if they already exist
-  const separator = baseUrl.includes("?") ? "&" : "";
+  const separator = baseUrl.includes("?") ? "&" : "?";
   const finalUrl = `${baseUrl}${separator}${connectionParams.replace("?", "")}`;
 
   const client = new PrismaClient({

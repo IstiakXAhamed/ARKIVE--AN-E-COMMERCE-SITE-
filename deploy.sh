@@ -1,59 +1,83 @@
 #!/bin/bash
-set -e
+# 🚀 Deployment Script for ARKIVE (Next.js + Prisma + cPanel)
+# Usage: ./deploy.sh          (Fast deploy: pull + restart only)
+# Usage: ./deploy.sh build    (Full deploy: install + db migrate + build + restart)
 
-# 0. Core Configuration (SilkMart Style)
+set -e # Exit immediately if any command fails
+# Ensure correct Node version (adjust path if needed)
+export PATH=/opt/alt/alt-nodejs20/root/usr/bin:$PATH 
+
+# CONFIGURATION
 LIVE_DIR=~/ARKIVE-E-COMMERCE
-NODE_BIN=/opt/alt/alt-nodejs20/root/usr/bin
-export PATH=$NODE_BIN:$PATH
+BRANCH="main"
 
-echo "🚀 Starting ARKIVE deployment..."
+echo "=================================================="
+echo "🚀 Starting Deployment for $LIVE_DIR"
+echo "🕒 Date: $(date)"
+echo "=================================================="
 
-# 1. Navigate to Project Directory
-cd "$LIVE_DIR"
+# 1. Navigate to project directory
+cd "$LIVE_DIR" || { echo "❌ Directory not found!"; exit 1; }
 
-# 2. Force Sync with Repository (Fixes "local changes" errors)
-echo "📥 pulling latest code..."
-git fetch origin main
-git reset --hard origin/main
+# 2. Pull latest code
+echo "📥 Pulling latest code from $BRANCH..."
+git fetch origin $BRANCH
+git reset --hard origin/$BRANCH
 
-# 3. Load Environment (after pull to get latest .env.example if needed, though .env is local)
-if [ -f .env ]; then
-  source .env
+# 3. Conditional Build Step
+if [ "$1" = "build" ]; then
+  echo "📦 Installing dependencies..."
+  # Clean install to ensure stability
+  rm -rf node_modules package-lock.json
+  npm cache clean --force
+  npm install --no-audit --legacy-peer-deps
+
+  echo "🗄️  Running Database Migrations..."
+  # CRITICAL: Updates your live database schema without data loss
+  npx prisma migrate deploy
+
+  echo "🔄 Generating Prisma Client..."
+  # Explicitly generate client to be safe
+  npx prisma generate
+
+  echo "🏗️  Building Next.js application..."
+  
+  # Resource Limits for Shared Hosting
+  export NEXT_TELEMETRY_DISABLED=1
+  export UV_THREADPOOL_SIZE=1
+  export NEXT_CPU_COUNT=1
+  
+  # Increase memory for build process (4GB)
+  # Keeping silk-lock reference if you have it, otherwise just use standard options
+  if [ -f "./silk-lock.js" ]; then
+      export NODE_OPTIONS="-r ./silk-lock.js --max-old-space-size=4096 --no-warnings"
+  else
+      export NODE_OPTIONS="--max-old-space-size=4096"
+  fi
+  
+  npm run build
+
+  echo "🧹 Cleaning up..."
+  # Remove devDependencies to save space/memory in production
+  # Note: Be careful with pruning if you have peer deps issues
+  npm prune --production --legacy-peer-deps
+else
+  echo "⏭️  Skipping build/migration (Fast Deploy Mode)"
+  echo "⚠️  NOTE: If you changed package.json or schema.prisma, run './deploy.sh build' instead!"
 fi
 
-# 4. Clean Install & Build
-echo "📦 Installing dependencies (Sequential)..."
-# Force a clean install to ensure stable versions are used
-rm -rf node_modules package-lock.json
-npm cache clean --force
-npm install --no-audit --legacy-peer-deps
-
-# 5. Generate Prisma Client
-echo "Generating Prisma Client..."
-npx prisma generate --no-engine
-
-# 6. Build Application (NPROC-Safe Mode)
-echo "hammer_and_wrench Building app..."
-
-# Export Critical Resource Limits
-export NEXT_TELEMETRY_DISABLED=1
-export UV_THREADPOOL_SIZE=1
-export NEXT_CPU_COUNT=1
-# Use SilkLock to protect spawned workers
-export NODE_OPTIONS="-r ./silk-lock.js --max-old-space-size=1024 --no-warnings"
-
-# Run Build
-./node_modules/.bin/next build
-
-# 7. Cleanup
-# 7. Cleanup
-echo "🧹 Skipping prune to preserve peer deps..."
-# npm prune --omit=dev --legacy-peer-deps
-
-
-# 8. Restart Application
-echo "♻️ Restarting app via Passenger..."
+# 4. Restart Application
+echo "♻️  Restarting Passenger..."
 mkdir -p tmp
 touch tmp/restart.txt
 
-echo "✅ Deployment complete! Site is live at https://arkivee.com"
+echo "⏳ Waiting 10 seconds for Passenger restart..."
+sleep 10
+
+echo "📊 Process check:"
+ps -eo pid,comm --no-headers | grep -c "node" || true
+
+echo "=================================================="
+echo "✅ DEPLOYMENT SUCCESSFUL!"
+echo "🌐 Site is live at https://arkivee.com"
+echo "=================================================="
