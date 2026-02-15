@@ -22,7 +22,7 @@ const nextConfig = {
   
   // Disable type checking during build to save memory/resource
   typescript: {
-    ignoreBuildErrors: true,
+    // ignoreBuildErrors: true,
   },
   // Increase timeout for static page generation to survive shared hosting limits
   staticPageGenerationTimeout: 300,

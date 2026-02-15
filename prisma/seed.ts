@@ -10,13 +10,11 @@
  * - Site settings
  * - Welcome coupon
  */
-import { PrismaClient } from "./generated/prisma/client";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prismaClientSingleton = () => {
-  const adapter = new PrismaMariaDb(process.env.DATABASE_URL!);
-  return new PrismaClient({ adapter });
+  return new PrismaClient();
 };
 
 const prisma = globalThis.prisma ?? prismaClientSingleton();
