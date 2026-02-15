@@ -30,7 +30,8 @@ if [ "$1" = "build" ]; then
   # Clean install to ensure stability
   rm -rf node_modules package-lock.json
   npm cache clean --force
-  npm install --no-audit --legacy-peer-deps
+  # Use --legacy-peer-deps to fix React 19 vs Recharts/NextAuth conflicts
+  npm install --legacy-peer-deps --no-audit
 
   echo "🗄️  Running Database Migrations..."
   # CRITICAL: Updates your live database schema without data loss
