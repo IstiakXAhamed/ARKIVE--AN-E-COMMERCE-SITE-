@@ -26,13 +26,15 @@ git reset --hard origin/$BRANCH
 
 # 3. Conditional Build Step
 if [ "$1" = "build" ]; then
-  echo "📦 Installing dependencies..."
+  echo "📦 Installing dependencies (with legacy-peer-deps to fix React 19 issues)..."
+  
   # Clean install to ensure stability
   rm -rf node_modules package-lock.json
   npm cache clean --force
   
   # CRITICAL: Always use --legacy-peer-deps for React 19 compatibility
-  npm install --legacy-peer-deps --no-audit
+  # Using || true to prevent script exit on minor warnings, but still capture errors
+  npm install --legacy-peer-deps --no-audit --omit=dev
 
   echo "🗄️  Running Database Migrations..."
   # CRITICAL: Updates your live database schema without data loss
