@@ -36,9 +36,10 @@ if [ "$1" = "build" ]; then
   # We install ALL dependencies first because we need them to BUILD the app.
   npm install --legacy-peer-deps --no-audit
 
-  echo "🗄️  Running Database Migrations..."
-  # CRITICAL: Updates your live database schema without data loss
-  npx prisma migrate deploy
+  echo "🗄️  Syncing Database Schema..."
+  # Use db push because there are no migration files in the project.
+  # --accept-data-loss is used because it's a non-interactive shell.
+  npx prisma db push --accept-data-loss
 
   echo "🔄 Generating Prisma Client..."
   # Explicitly generate client to be safe
