@@ -4,8 +4,8 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 // CONFIGURATION: Change these values!
-const adminEmail = 'admin@arkive.com.bd';
-const adminPassword = 'Admin@123'; // Set your desired password here
+const adminEmail = 'admin@arkive.com';
+const adminPassword = '123123123';
 
 async function main() {
   console.log('--- Secure Admin Setup ---');
