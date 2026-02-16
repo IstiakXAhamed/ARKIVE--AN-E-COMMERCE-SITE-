@@ -133,11 +133,11 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="hidden md:block"
+            className="w-full mt-8 lg:mt-0"
           >
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {/* Large Featured (Position 1) */}
-              <Link href={mainItem.link} className="col-span-2 block group">
+              <Link href={mainItem.link} className="col-span-1 sm:col-span-2 block group">
                 <div className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-xl overflow-hidden relative h-full hover:shadow-2xl transition-all">
                   <div className="aspect-[16/9] bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-xl md:rounded-2xl overflow-hidden relative">
                     <Image
@@ -160,7 +160,7 @@ export function HeroSection() {
               {/* Bottom Left (Position 2) */}
               <Link href={leftItem.link} className="block group">
                 <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-5 shadow-lg group hover:shadow-xl transition-all overflow-hidden h-full">
-                  <div className="aspect-square rounded-lg md:rounded-xl overflow-hidden relative">
+                  <div className="aspect-[4/3] sm:aspect-square rounded-lg md:rounded-xl overflow-hidden relative">
                     <Image
                       src={leftItem.imageUrl}
                       alt={leftItem.title}
@@ -178,7 +178,7 @@ export function HeroSection() {
               {/* Bottom Right (Position 3) */}
               <Link href={rightItem.link} className="block group">
                 <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-5 shadow-lg group hover:shadow-xl transition-all overflow-hidden h-full">
-                  <div className="aspect-square rounded-lg md:rounded-xl overflow-hidden relative">
+                  <div className="aspect-[4/3] sm:aspect-square rounded-lg md:rounded-xl overflow-hidden relative">
                     <Image
                       src={rightItem.imageUrl}
                       alt={rightItem.title}

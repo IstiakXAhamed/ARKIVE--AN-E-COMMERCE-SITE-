@@ -46,6 +46,7 @@ model User {
   wishlist      WishlistItem[]
   addresses     Address[]
   chatSessions  AIChatSession[]
+  systemLogs    SystemLog[]
 
   @@index([email])
   @@index([role])
@@ -415,4 +416,34 @@ model HeroGridItem {
 
   @@unique([position])
   @@map("hero_grid_items")
+}
+
+// ============================================
+// SYSTEM LOGS (Super Console)
+// ============================================
+
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+  CRITICAL
+}
+
+model SystemLog {
+  id        String   @id @default(cuid())
+  level     LogLevel @default(INFO)
+  action    String
+  message   String   @db.Text
+  metadata  Json?    // Any extra details
+  userId    String?  // Who performed the action (if known)
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([level])
+  @@index([action])
+  @@index([createdAt])
+  @@map("system_logs")
 }

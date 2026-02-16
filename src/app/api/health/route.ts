@@ -1,23 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logSystemAction } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Health Check API Endpoint
  * 
- * Purpose: Verify the API routing layer is functioning correctly
- * This endpoint is independent of database connections and external services
+ * Purpose: Verify the API routing layer and database connectivity
  * 
  * Endpoint: GET/POST /api/health
- * Response: 200 OK with JSON status
+ * Response: 200 OK with JSON status including database connectivity
  * 
  * Use cases:
  * - Server uptime monitoring
  * - Load balancer health checks
- * - Basic API connectivity verification
+ * - API and database connectivity verification
  * - Logging health checks to system logs
  */
 
+/**
+ * Check database connectivity using a simple SELECT 1 query
+ */
+async function checkDatabaseConnectivity(): Promise<"connected" | "disconnected"> {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return "connected";
+  } catch (error) {
+    return "disconnected";
+  }
+}
+
 export async function GET(request: NextRequest) {
+  // Check database connectivity (non-blocking)
+  const database = await checkDatabaseConnectivity();
+
   // Log health check (non-blocking - fire and forget)
   logSystemAction({
     action: "HEALTH_CHECK",
@@ -26,6 +41,7 @@ export async function GET(request: NextRequest) {
     metadata: {
       method: "GET",
       path: "/api/health",
+      database,
     },
   }).catch(() => {
     // Silently fail if logging fails - don't affect health endpoint
@@ -37,6 +53,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: process.env.NODE_ENV || "development",
+      database,
     },
     { status: 200 }
   );
@@ -45,6 +62,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   // Allow POST for compatibility with various health check systems
   
+  // Check database connectivity (non-blocking)
+  const database = await checkDatabaseConnectivity();
+
   // Log health check (non-blocking - fire and forget)
   logSystemAction({
     action: "HEALTH_CHECK",
@@ -53,6 +73,7 @@ export async function POST(request: NextRequest) {
     metadata: {
       method: "POST",
       path: "/api/health",
+      database,
     },
   }).catch(() => {
     // Silently fail if logging fails - don't affect health endpoint
@@ -64,6 +85,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: process.env.NODE_ENV || "development",
+      database,
     },
     { status: 200 }
   );

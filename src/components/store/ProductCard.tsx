@@ -72,46 +72,56 @@ export function ProductCard({
           </span>
         )}
 
-        {/* Hover Actions - Positioned at bottom of image */}
-        <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
-          <div className="flex justify-center gap-2">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={(e) => {
-                e.preventDefault();
-                onAddToCart?.();
-              }}
-              className="w-9 h-9 bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-emerald-500 hover:text-white transition-colors"
-              title="Add to Cart"
-            >
-              <ShoppingCart size={16} />
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={(e) => {
-                e.preventDefault();
-                onAddToWishlist?.();
-              }}
-              className="w-9 h-9 bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-red-500 hover:text-white transition-colors"
-              title="Add to Wishlist"
-            >
-              <Heart size={16} />
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleQuickView}
-              className="w-9 h-9 bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-emerald-500 hover:text-white transition-colors"
-              title="Quick View"
-            >
-              <Eye size={16} />
-            </motion.button>
-          </div>
+      {/* Hover Actions - Positioned at bottom of image */}
+        <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center gap-3 backdrop-blur-[2px]">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={(e) => {
+              e.preventDefault();
+              onAddToCart?.();
+            }}
+            className="w-10 h-10 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-emerald-500 hover:text-white transition-colors"
+            title="Add to Cart"
+          >
+            <ShoppingCart size={18} />
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={(e) => {
+              e.preventDefault();
+              onAddToWishlist?.();
+            }}
+            className="w-10 h-10 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-red-500 hover:text-white transition-colors"
+            title="Add to Wishlist"
+          >
+            <Heart size={18} />
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleQuickView}
+            className="w-10 h-10 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-500 hover:text-white transition-colors"
+            title="Quick View"
+          >
+            <Eye size={18} />
+          </motion.button>
         </div>
+
+        {/* Mobile Action Button (Always Visible) */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onAddToCart?.();
+          }}
+          className="md:hidden absolute bottom-2 right-2 w-10 h-10 bg-white/90 backdrop-blur text-emerald-600 rounded-full flex items-center justify-center shadow-md border border-emerald-100 active:scale-95 transition-transform z-10"
+          aria-label="Add to Cart"
+        >
+          <ShoppingCart size={20} />
+        </button>
       </Link>
 
       {/* Product Info */}
