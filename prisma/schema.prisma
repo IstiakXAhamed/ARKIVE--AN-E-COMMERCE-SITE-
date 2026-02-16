@@ -49,6 +49,7 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@map("users")
 }
 
 model Account {
@@ -69,6 +70,7 @@ model Account {
 
   @@unique([provider, providerAccountId])
   @@index([userId])
+  @@map("accounts")
 }
 
 model Session {
@@ -80,6 +82,7 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@map("sessions")
 }
 
 model VerificationToken {
@@ -88,6 +91,7 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
 // ============================================
@@ -110,6 +114,7 @@ model Address {
   orders Order[]
 
   @@index([userId])
+  @@map("addresses")
 }
 
 // ============================================
@@ -132,6 +137,7 @@ model Category {
 
   @@index([slug])
   @@index([isActive])
+  @@map("categories")
 }
 
 model Product {
@@ -173,6 +179,7 @@ model Product {
   @@index([isActive, isFeatured])
   @@index([badge])
   @@index([price])
+  @@map("products")
 }
 
 model ProductImage {
@@ -186,6 +193,7 @@ model ProductImage {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
+  @@map("product_images")
 }
 
 // ============================================
@@ -213,6 +221,7 @@ model Review {
   @@index([productId])
   @@index([userId])
   @@index([isApproved])
+  @@map("reviews")
 }
 
 // ============================================
@@ -230,6 +239,7 @@ model WishlistItem {
 
   @@unique([userId, productId])
   @@index([userId])
+  @@map("wishlist")
 }
 
 // ============================================
@@ -292,6 +302,7 @@ model Order {
   @@index([orderNumber])
   @@index([status])
   @@index([createdAt])
+  @@map("orders")
 }
 
 model OrderItem {
@@ -308,6 +319,7 @@ model OrderItem {
 
   @@index([orderId])
   @@index([productId])
+  @@map("order_items")
 }
 
 // ============================================
@@ -325,6 +337,7 @@ model SiteSetting {
 
   @@index([key])
   @@index([group])
+  @@map("site_settings")
 }
 
 // ============================================
@@ -342,6 +355,7 @@ model AIChatSession {
   messages AIChatMessage[]
 
   @@index([userId])
+  @@map("ai_chat_sessions")
 }
 
 model AIChatMessage {
@@ -355,6 +369,7 @@ model AIChatMessage {
   session AIChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
+  @@map("ai_chat_messages")
 }
 
 // ============================================
@@ -382,4 +397,5 @@ model Coupon {
 
   @@index([code])
   @@index([isActive])
+  @@map("coupons")
 }
