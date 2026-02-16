@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { HeroSection } from "@/components/store/HeroSection";
 import { CategoryGrid } from "@/components/store/CategoryGrid";
 import { ProductGrid } from "@/components/store/ProductGrid";
