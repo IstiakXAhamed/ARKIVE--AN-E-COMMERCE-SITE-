@@ -28,6 +28,8 @@ function mapProductToData(product: any): ProductData {
     rating: product.rating ? Number(product.rating) : undefined,
     reviewsCount: product.reviewsCount || 0,
     description: product.description || undefined,
+    shortDesc: product.shortDesc || undefined,
+    metaDescription: product.metaDescription || undefined,
     stock: product.stock || 0,
     images: product.images?.map((img: any) => ({
       id: img.id,

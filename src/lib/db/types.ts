@@ -26,6 +26,8 @@ export interface ProductData {
   rating?: number;
   reviewsCount?: number;
   description?: string;
+  shortDesc?: string;
+  metaDescription?: string;
   stock?: number;
   images?: ProductImageData[];
 }
