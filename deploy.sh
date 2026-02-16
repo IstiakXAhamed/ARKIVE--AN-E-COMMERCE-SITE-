@@ -34,8 +34,10 @@ if [ "$1" = "build" ]; then
   echo "🗄️  Syncing Database Schema..."
   npx prisma db push --accept-data-loss
 
-  echo "🔄 Generating Prisma Client..."
-  npx prisma generate
+   echo "🔄 Generating Prisma Client..."
+   npx prisma generate
+   echo "🌱 Seeding production database..."
+   npx tsx prisma/seed.ts
 
   echo "🏗️  Building Next.js application..."
   
