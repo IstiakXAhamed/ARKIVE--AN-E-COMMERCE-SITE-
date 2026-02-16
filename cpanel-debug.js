@@ -14,11 +14,21 @@ async function testConnection() {
     await prisma.$connect();
     console.log("✅ Prisma connected successfully!");
 
-    console.log("2. Attempting to fetch one user...");
+    console.log("2. Checking row counts...");
     const userCount = await prisma.user.count();
-    console.log(`✅ Success! Found ${userCount} users in the database.`);
+    const productCount = await prisma.product.count();
+    const categoryCount = await prisma.category.count();
+    const imageCount = await prisma.productImage.count();
+    
+    console.log(`✅ Users: ${userCount}`);
+    console.log(`✅ Products: ${productCount}`);
+    console.log(`✅ Categories: ${categoryCount}`);
+    console.log(`✅ Images: ${imageCount}`);
 
-    console.log("3. Attempting to list table names (raw query)...");
+    if (categoryCount > 0) {
+      const sampleCats = await prisma.category.findMany({ take: 3 });
+      console.log("3. Sample Categories slugs:", sampleCats.map(c => c.slug));
+    }
     const result = await prisma.$queryRaw`SHOW TABLES`;
     console.log("✅ Tables found:", result);
 
