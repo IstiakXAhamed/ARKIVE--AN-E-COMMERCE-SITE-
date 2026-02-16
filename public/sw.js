@@ -1,6 +1,5 @@
-/// <reference lib="webworker" />
-
-const CACHE_NAME = "arkive-v1";
+// ARKIVE Service Worker v2
+const CACHE_NAME = "arkive-v2";
 const STATIC_ASSETS = [
   "/",
   "/shop",
@@ -9,43 +8,41 @@ const STATIC_ASSETS = [
   "/manifest.json",
 ];
 
-const sw = self as unknown as ServiceWorkerGlobalScope;
-
 // Install — pre-cache shell
-sw.addEventListener("install", (event) => {
+self.addEventListener("install", function (event) {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll(STATIC_ASSETS))
-      .then(() => sw.skipWaiting())
+      .then(function (cache) { return cache.addAll(STATIC_ASSETS); })
+      .then(function () { return self.skipWaiting(); })
   );
 });
 
 // Activate — clean old caches
-sw.addEventListener("activate", (event) => {
+self.addEventListener("activate", function (event) {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) =>
-        Promise.all(
+      .then(function (keys) {
+        return Promise.all(
           keys
-            .filter((key) => key !== CACHE_NAME)
-            .map((key) => caches.delete(key))
-        )
-      )
-      .then(() => sw.clients.claim())
+            .filter(function (key) { return key !== CACHE_NAME; })
+            .map(function (key) { return caches.delete(key); })
+        );
+      })
+      .then(function () { return self.clients.claim(); })
   );
 });
 
 // Fetch — network-first for pages, cache-first for assets
-sw.addEventListener("fetch", (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
+self.addEventListener("fetch", function (event) {
+  var request = event.request;
+  var url = new URL(request.url);
 
   // Skip non-GET and cross-origin
-  if (request.method !== "GET" || url.origin !== sw.location.origin) return;
+  if (request.method !== "GET" || url.origin !== self.location.origin) return;
 
-  // Skip API routes — always network
+  // Skip API and auth routes — always network
   if (url.pathname.startsWith("/api/")) return;
 
   // Images and static assets — cache-first
@@ -54,12 +51,12 @@ sw.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/_next/static/")
   ) {
     event.respondWith(
-      caches.match(request).then((cached) => {
+      caches.match(request).then(function (cached) {
         if (cached) return cached;
-        return fetch(request).then((response) => {
+        return fetch(request).then(function (response) {
           if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            var clone = response.clone();
+            caches.open(CACHE_NAME).then(function (cache) { cache.put(request, clone); });
           }
           return response;
         });
@@ -71,19 +68,20 @@ sw.addEventListener("fetch", (event) => {
   // Pages — network-first with cache fallback
   event.respondWith(
     fetch(request)
-      .then((response) => {
+      .then(function (response) {
         if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          var clone = response.clone();
+          caches.open(CACHE_NAME).then(function (cache) { cache.put(request, clone); });
         }
         return response;
       })
-      .catch(() =>
-        caches.match(request).then(
-          (cached) =>
-            cached ||
-            caches.match("/").then((fallback) => fallback || new Response("Offline", { status: 503 }))
-        )
-      )
+      .catch(function () {
+        return caches.match(request).then(function (cached) {
+          return cached ||
+            caches.match("/").then(function (fallback) {
+              return fallback || new Response("Offline", { status: 503 });
+            });
+        });
+      })
   );
 });
