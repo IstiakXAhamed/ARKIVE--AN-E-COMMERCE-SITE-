@@ -39,7 +39,7 @@ export async function GET() {
       prisma.product.count({
         where: {
           isActive: true,
-          stock: { lte: prisma.product.fields.lowStockAlert },
+          stock: { lte: 5 }, // Fixed: direct value instead of field reference
         },
       }),
       // Recent orders (5)

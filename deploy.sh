@@ -66,6 +66,13 @@ else
   echo "⚠️  NOTE: If you changed package.json or schema.prisma, run './deploy.sh build' instead!"
 fi
 
+
+# 3.5. Sync static files to document root (arkivee.com)
+echo "📂 Syncing static assets to ~/arkivee.com/_next/static..."
+rm -rf ~/arkivee.com/_next/static
+cp -r .next/static ~/arkivee.com/_next/static
+echo "✅ Static files synced!"
+
 # 4. Restart Application
 echo "♻️  Restarting Passenger..."
 mkdir -p tmp

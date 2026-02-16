@@ -7,6 +7,9 @@
  * DO NOT rename this file — cPanel expects exactly "app.js".
  */
 
+// Load environment variables
+require('dotenv').config();
+
 // ─── 1. Lock environment BEFORE anything else loads ───
 process.env.UV_THREADPOOL_SIZE = '1';
 process.env.NODE_ENV = 'production';

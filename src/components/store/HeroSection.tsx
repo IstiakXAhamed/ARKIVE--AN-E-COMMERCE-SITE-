@@ -1,12 +1,68 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight, Sparkles } from "lucide-react";
 
+interface HeroItem {
+  position: number;
+  title: string;
+  subtitle: string;
+  imageUrl: string;
+  link: string;
+}
+
 export function HeroSection() {
+  const [heroItems, setHeroItems] = useState<HeroItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHeroItems = async () => {
+      try {
+        const res = await fetch("/api/admin/layout/hero");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.items && data.items.length > 0) {
+            setHeroItems(data.items);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch hero items", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHeroItems();
+  }, []);
+
+  const getItem = (pos: number) => heroItems.find((i) => i.position === pos);
+
+  // Fallback data if DB is empty or loading failed
+  const mainItem = getItem(1) || {
+    title: "Premium Jewelry Sets",
+    subtitle: "Starting from ৳1,500",
+    imageUrl: "/images/jewelry-hero.png",
+    link: "/category/jewelry",
+  };
+
+  const leftItem = getItem(2) || {
+    title: "Watches",
+    subtitle: "50+ Styles",
+    imageUrl: "/images/watches-category.png",
+    link: "/category/watches",
+  };
+
+  const rightItem = getItem(3) || {
+    title: "Rings",
+    subtitle: "100+ Designs",
+    imageUrl: "/images/rings-category.png",
+    link: "/category/rings",
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-emerald-50">
       {/* Background Pattern */}
@@ -72,7 +128,7 @@ export function HeroSection() {
             </div>
           </motion.div>
 
-          {/* Bento Grid Featured with Real Images */}
+          {/* Bento Grid Featured with Dynamic Images */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -80,50 +136,62 @@ export function HeroSection() {
             className="hidden md:block"
           >
             <div className="grid grid-cols-2 gap-3 md:gap-4">
-              {/* Large Featured */}
-              <div className="col-span-2 bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-xl overflow-hidden relative group">
-                <div className="aspect-[16/9] bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-xl md:rounded-2xl overflow-hidden relative">
-                  <Image
-                    src="/images/jewelry-hero.png"
-                    alt="Premium Jewelry Sets"
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+              {/* Large Featured (Position 1) */}
+              <Link href={mainItem.link} className="col-span-2 block group">
+                <div className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-xl overflow-hidden relative h-full hover:shadow-2xl transition-all">
+                  <div className="aspect-[16/9] bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-xl md:rounded-2xl overflow-hidden relative">
+                    <Image
+                      src={mainItem.imageUrl}
+                      alt={mainItem.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="mt-3 md:mt-4">
+                    <span className="text-xs uppercase tracking-wider text-emerald-600 font-semibold">Featured</span>
+                    <h3 className="text-lg md:text-xl font-semibold text-gray-800 mt-1">{mainItem.title}</h3>
+                    {mainItem.subtitle && (
+                      <p className="text-gray-500 text-sm mt-1">{mainItem.subtitle}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="mt-3 md:mt-4">
-                  <span className="text-xs uppercase tracking-wider text-emerald-600 font-semibold">Featured</span>
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-800 mt-1">Premium Jewelry Sets</h3>
-                  <p className="text-gray-500 text-sm mt-1">Starting from ৳1,500</p>
-                </div>
-              </div>
+              </Link>
 
-              {/* Watches Card */}
-              <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-5 shadow-lg group hover:shadow-xl transition-shadow overflow-hidden">
-                <div className="aspect-square rounded-lg md:rounded-xl overflow-hidden relative">
-                  <Image
-                    src="/images/watches-category.png"
-                    alt="Luxury Watches"
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
+              {/* Bottom Left (Position 2) */}
+              <Link href={leftItem.link} className="block group">
+                <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-5 shadow-lg group hover:shadow-xl transition-all overflow-hidden h-full">
+                  <div className="aspect-square rounded-lg md:rounded-xl overflow-hidden relative">
+                    <Image
+                      src={leftItem.imageUrl}
+                      alt={leftItem.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  </div>
+                  <h4 className="font-semibold text-gray-800 mt-2 md:mt-3 text-sm md:text-base">{leftItem.title}</h4>
+                  {leftItem.subtitle && (
+                    <p className="text-xs md:text-sm text-emerald-600">{leftItem.subtitle}</p>
+                  )}
                 </div>
-                <h4 className="font-semibold text-gray-800 mt-2 md:mt-3 text-sm md:text-base">Watches</h4>
-                <p className="text-xs md:text-sm text-emerald-600">50+ Styles</p>
-              </div>
+              </Link>
 
-              {/* Rings Card */}
-              <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-5 shadow-lg group hover:shadow-xl transition-shadow overflow-hidden">
-                <div className="aspect-square rounded-lg md:rounded-xl overflow-hidden relative">
-                  <Image
-                    src="/images/rings-category.png"
-                    alt="Diamond Rings"
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
+              {/* Bottom Right (Position 3) */}
+              <Link href={rightItem.link} className="block group">
+                <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-5 shadow-lg group hover:shadow-xl transition-all overflow-hidden h-full">
+                  <div className="aspect-square rounded-lg md:rounded-xl overflow-hidden relative">
+                    <Image
+                      src={rightItem.imageUrl}
+                      alt={rightItem.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  </div>
+                  <h4 className="font-semibold text-gray-800 mt-2 md:mt-3 text-sm md:text-base">{rightItem.title}</h4>
+                  {rightItem.subtitle && (
+                    <p className="text-xs md:text-sm text-emerald-600">{rightItem.subtitle}</p>
+                  )}
                 </div>
-                <h4 className="font-semibold text-gray-800 mt-2 md:mt-3 text-sm md:text-base">Rings</h4>
-                <p className="text-xs md:text-sm text-emerald-600">100+ Designs</p>
-              </div>
+              </Link>
             </div>
           </motion.div>
         </div>

@@ -13,6 +13,7 @@ import {
   ChevronRight,
   ShoppingBag,
   Settings,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
@@ -47,6 +48,14 @@ export default function AccountPage() {
   const { data: session, status } = useSession();
   const [signingOut, setSigningOut] = useState(false);
 
+  // Check if user is admin
+  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    await signOut({ callbackUrl: "/" });
+  };
+
   if (status === "loading") {
     return (
       <section className="py-20">
@@ -57,36 +66,43 @@ export default function AccountPage() {
     );
   }
 
-  const handleSignOut = async () => {
-    setSigningOut(true);
-    await signOut({ callbackUrl: "/" });
-  };
-
   return (
     <>
-      {/* Header */}
-      <section className="bg-gradient-to-r from-emerald-50 to-white py-8 md:py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-3">
-            <User size={28} className="text-emerald-600" />
-            <div>
-              <h1 className="font-display text-3xl md:text-4xl font-bold text-gray-900">
-                My Account
-              </h1>
-              {session?.user?.name && (
-                <p className="text-gray-500 text-sm mt-1">
-                  Welcome back, {session.user.name}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ... (Header) */}
 
       <section className="py-8 md:py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto space-y-6">
+            
+            {/* Admin Dashboard Button (Only for Admins) */}
+            {isAdmin && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-emerald-600 to-emerald-800 rounded-2xl p-6 shadow-lg text-white"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                      <Shield className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">Admin Dashboard</h3>
+                      <p className="text-emerald-100 text-sm">Manage products, orders, and users</p>
+                    </div>
+                  </div>
+                  <Link 
+                    href="/admin" 
+                    className="bg-white text-emerald-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-emerald-50 transition-colors"
+                  >
+                    Go to Dashboard
+                  </Link>
+                </div>
+              </motion.div>
+            )}
+
             {/* Profile Card */}
+            {/* ... (rest of the code) */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

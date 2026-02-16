@@ -399,3 +399,20 @@ model Coupon {
   @@index([isActive])
   @@map("coupons")
 }
+
+// ============================================
+// STOREFRONT LAYOUT
+// ============================================
+
+model HeroGridItem {
+  id          String   @id @default(cuid())
+  position    Int      // 1 (large), 2 (bottom left), 3 (bottom right)
+  title       String
+  subtitle    String?
+  imageUrl    String
+  link        String
+  updatedAt   DateTime @updatedAt
+
+  @@unique([position])
+  @@map("hero_grid_items")
+}
