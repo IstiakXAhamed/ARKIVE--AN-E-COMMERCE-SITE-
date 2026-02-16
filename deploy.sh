@@ -26,16 +26,20 @@ git reset --hard origin/$BRANCH
 
 # 3. Conditional Build Step
 if [ "$1" = "build" ]; then
-  echo "📦 Updating dependencies..."
-  # Optimized install: No cache clean or rm -rf unless needed.
+  echo "🧹 Cleaning old dependencies..."
+  # MUST clean node_modules to ensure fresh Prisma binaries for server platform
+  rm -rf node_modules package-lock.json .next
+  
+  echo "📦 Installing dependencies fresh..."
   # Using --legacy-peer-deps for React 19 compatibility.
   npm install --legacy-peer-deps --no-audit
 
+  echo "🔄 Generating Prisma Client for server platform..."
+  # Generate Prisma client AFTER npm install so it detects server's OpenSSL version
+  npx prisma generate
+
   echo "🗄️  Syncing Database Schema..."
   npx prisma db push --accept-data-loss
-
-  echo "🔄 Generating Prisma Client..."
-  npx prisma generate
 
   echo "🏗️  Building Next.js application..."
   
@@ -56,7 +60,7 @@ if [ "$1" = "build" ]; then
   npm run build
 
   echo "🧹 Cleaning up..."
-  npm prune --production --legacy-peer-deps
+  npm install --omit=dev --legacy-peer-deps
 else
   echo "⏭️  Skipping build/migration (Fast Deploy Mode)"
   echo "⚠️  NOTE: If you changed package.json or schema.prisma, run './deploy.sh build' instead!"
