@@ -25,9 +25,28 @@ async function testConnection() {
     console.log(`✅ Categories: ${categoryCount}`);
     console.log(`✅ Images: ${imageCount}`);
 
+    if (productCount > 0) {
+      console.log("\n3. Inspecting a sample Product...");
+      const sampleProduct = await prisma.product.findFirst();
+      console.log("Sample Product:", JSON.stringify({
+        id: sampleProduct.id,
+        name: sampleProduct.name,
+        slug: sampleProduct.slug,
+        isActive: sampleProduct.isActive,
+        isFeatured: sampleProduct.isFeatured,
+        categoryId: sampleProduct.categoryId
+      }, null, 2));
+    }
+
     if (categoryCount > 0) {
-      const sampleCats = await prisma.category.findMany({ take: 3 });
-      console.log("3. Sample Categories slugs:", sampleCats.map(c => c.slug));
+      console.log("\n4. Inspecting a sample Category...");
+      const sampleCategory = await prisma.category.findFirst();
+      console.log("Sample Category:", JSON.stringify({
+        id: sampleCategory.id,
+        name: sampleCategory.name,
+        slug: sampleCategory.slug,
+        isActive: sampleCategory.isActive
+      }, null, 2));
     }
     const result = await prisma.$queryRaw`SHOW TABLES`;
     console.log("✅ Tables found:", result);
