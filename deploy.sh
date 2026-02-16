@@ -67,11 +67,13 @@ else
 fi
 
 
-# 3.5. Sync static files to document root (arkivee.com)
-echo "📂 Syncing static assets to ~/arkivee.com/_next/static..."
-rm -rf ~/arkivee.com/_next/static
-cp -r .next/static ~/arkivee.com/_next/static
-echo "✅ Static files synced!"
+# 3.5. Remove stale static files from Apache's document root
+# CRITICAL: Do NOT copy _next/static to ~/arkivee.com/
+# Apache returns 400 on paths with parentheses like (shop) in chunk names.
+# Instead, let Passenger/Node.js serve ALL _next/ requests directly.
+echo "📂 Removing stale static assets from ~/arkivee.com/_next..."
+rm -rf ~/arkivee.com/_next
+echo "✅ Static files cleaned! Node.js will serve them directly."
 
 # 4. Restart Application
 echo "♻️  Restarting Passenger..."
