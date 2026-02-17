@@ -30,14 +30,29 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const { position, title, subtitle, imageUrl, link } = body;
 
-    if (!position || !title || !imageUrl) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!position) {
+      return NextResponse.json({ error: "Position is required" }, { status: 400 });
+    }
+
+    if (!title || !title.trim()) {
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
     const item = await prisma.heroGridItem.upsert({
       where: { position },
-      update: { title, subtitle, imageUrl, link },
-      create: { position, title, subtitle, imageUrl, link: link || "#" },
+      update: {
+        title: title.trim(),
+        subtitle: subtitle?.trim() || null,
+        imageUrl: imageUrl?.trim() || "",
+        link: link?.trim() || "#",
+      },
+      create: {
+        position,
+        title: title.trim(),
+        subtitle: subtitle?.trim() || null,
+        imageUrl: imageUrl?.trim() || "",
+        link: link?.trim() || "#",
+      },
     });
 
     return NextResponse.json({ success: true, item });

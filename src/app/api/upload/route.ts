@@ -1,65 +1,92 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v2 as cloudinary } from "cloudinary";
+import { auth } from "@/auth";
+import { writeFile, mkdir } from "fs/promises";
+import { existsSync } from "fs";
+import path from "path";
 
-// Configure Cloudinary with secure server-side credentials
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
+// Support file upload by disabling body parser if needed (Next.js handles this automatically for App Router)
 
-// POST /api/upload - Upload image to Cloudinary (Server-side signed upload)
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get("file") as File | null;
+    const folder = (formData.get("folder") as string) || "uploads";
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // 1. Validate Config
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      console.error("Cloudinary credentials missing");
-      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    // 1. Try Cloudinary
+    const useCloudinary =
+      process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET;
+
+    if (useCloudinary) {
+      try {
+        const { v2: cloudinary } = await import("cloudinary");
+        cloudinary.config({
+          cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+          api_key: process.env.CLOUDINARY_API_KEY,
+          api_secret: process.env.CLOUDINARY_API_SECRET,
+        });
+
+        // Use a Promise to handle the stream upload
+        const result = await new Promise<any>((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder: `arkive/${folder}`,
+              resource_type: "auto",
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          uploadStream.end(buffer);
+        });
+
+        return NextResponse.json({
+          success: true,
+          url: result.secure_url,
+          publicId: result.public_id,
+        });
+      } catch (cloudinaryError) {
+        console.error("Cloudinary upload failed:", cloudinaryError);
+        // Fallback to local storage if Cloudinary fails
+      }
     }
 
-    // 2. Convert File to Buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // 2. Local Fallback (if Cloudinary missing or failed)
+    const timestamp = Date.now();
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const fileName = `${timestamp}_${safeName}`;
+    
+    // Ensure directory exists
+    const uploadDir = path.join(process.cwd(), "public", "uploads", folder);
+    if (!existsSync(uploadDir)) {
+      await mkdir(uploadDir, { recursive: true });
+    }
 
-    // 3. Upload to Cloudinary using a Stream
-    // We wrap this in a Promise to handle the stream async
-    const uploadResult = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: "arkive", // Organize in a folder
-          resource_type: "auto", // Handle images/videos
-        },
-        (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
-          }
-        }
-      );
-      uploadStream.end(buffer);
-    });
-
-    const result = uploadResult as any;
+    const filePath = path.join(uploadDir, fileName);
+    await writeFile(filePath, buffer);
 
     return NextResponse.json({
-      url: result.secure_url,
-      publicId: result.public_id,
-      width: result.width,
-      height: result.height,
-      format: result.format,
+      success: true,
+      url: `/uploads/${folder}/${fileName}`, // Public URL
+      isLocal: true,
     });
 
   } catch (error) {
-    console.error("Cloudinary upload error:", error);
+    console.error("Upload error:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }

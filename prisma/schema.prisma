@@ -11,66 +11,61 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// USER & AUTH
-// ============================================
-
-enum UserRole {
-  CUSTOMER
+// Enums
+enum Role {
+  USER
   ADMIN
   SUPERADMIN
 }
 
-enum AuthProvider {
-  CREDENTIALS
-  GOOGLE
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
 
+// User Model
 model User {
-  id            String       @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String       @unique
+  email         String    @unique
   emailVerified DateTime?
-  password      String?      // bcrypt hash (null for OAuth users)
   image         String?
-  phone         String?
-  role          UserRole     @default(CUSTOMER)
-  provider      AuthProvider @default(CREDENTIALS)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  password      String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   accounts      Account[]
   sessions      Session[]
   orders        Order[]
   reviews       Review[]
-  wishlist      WishlistItem[]
+  wishlist      Wishlist[]
   addresses     Address[]
-  chatSessions  AIChatSession[]
-  systemLogs    SystemLog[]
 
-  @@index([email])
-  @@index([role])
   @@map("users")
 }
 
+// NextAuth Models
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-  @@index([userId])
   @@map("accounts")
 }
 
@@ -79,10 +74,8 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
   @@map("sessions")
 }
 
@@ -95,214 +88,117 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-// ============================================
-// ADDRESS
-// ============================================
-
-model Address {
-  id        String  @id @default(cuid())
-  userId    String
-  label     String  @default("Home") // Home, Office, etc.
-  fullName  String
-  phone     String
-  division  String
-  district  String
-  area      String
-  address   String  @db.Text
-  isDefault Boolean @default(false)
-
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders Order[]
-
-  @@index([userId])
-  @@map("addresses")
-}
-
-// ============================================
-// PRODUCT CATALOG
-// ============================================
-
+// Product System
 model Category {
   id          String    @id @default(cuid())
   name        String
   slug        String    @unique
   description String?   @db.Text
-  icon        String?   // emoji or icon name
-  image       String?   // Cloudinary URL
-  sortOrder   Int       @default(0)
+  image       String?
+  parentId    String?
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  products Product[]
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  products    Product[]
 
-  @@index([slug])
-  @@index([isActive])
   @@map("categories")
 }
 
 model Product {
-  id              String   @id @default(cuid())
-  name            String
-  slug            String   @unique
-  description     String?  @db.Text
-  shortDesc       String?  @db.VarChar(500)
-  price           Decimal  @db.Decimal(10, 2)
-  compareAtPrice  Decimal? @db.Decimal(10, 2) // original/strikethrough price
-  costPrice       Decimal? @db.Decimal(10, 2) // for profit tracking
-  sku             String?  @unique
-  stock           Int      @default(0)
-  lowStockAlert   Int      @default(5)
-  weight          Decimal? @db.Decimal(8, 2) // grams
-  categoryId      String
-  subcategory     String?
-  tags            String?  @db.Text // comma-separated
-  specs           Json?    // flexible key-value specs
-  badge           String?  // "sale", "new", "flash", "bestseller"
-  isActive        Boolean  @default(true)
-  isFeatured      Boolean  @default(false)
-  metaTitle       String?  @db.VarChar(160)
-  metaDescription String?  @db.VarChar(320)
-  rating          Decimal  @default(0) @db.Decimal(2, 1)
-  reviewsCount    Int      @default(0)
-  salesCount      Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  description   String   @db.Text
+  shortDesc     String?  @db.Text // For quick view
+  price         Float
+  originalPrice Float?
+  image         String
+  images        Json?    // Array of {url, alt, isPrimary}
+  
+  // Relations
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+  
+  // Inventory & Variants (Enhanced from SilkMart)
+  stock         Int      @default(0)
+  sku           String?  @unique
+  
+  // Smart Fields
+  isFeatured    Boolean  @default(false)
+  isNew         Boolean  @default(true)
+  isActive      Boolean  @default(true)
+  isOnSale      Boolean  @default(false)
+  
+  // SEO & Meta (Ported from SilkMart)
+  metaTitle       String?
+  metaDescription String? @db.Text
+  metaKeywords    String? // Comma separated
+  productType     String  @default("clothing") // clothing, footwear, digital, etc.
+  
+  // Ratings
+  rating        Float    @default(0)
+  reviewsCount  Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  category   Category       @relation(fields: [categoryId], references: [id])
-  images     ProductImage[]
-  reviews    Review[]
-  orderItems OrderItem[]
-  wishlist   WishlistItem[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+  wishlists     Wishlist[]
+  variants      ProductVariant[] // New relation
 
-  @@index([slug])
   @@index([categoryId])
-  @@index([isActive, isFeatured])
-  @@index([badge])
-  @@index([price])
+  @@index([slug])
+  @@index([isFeatured])
   @@map("products")
 }
 
-model ProductImage {
-  id        String  @id @default(cuid())
-  productId String
-  url       String  // Cloudinary URL
-  alt       String?
-  sortOrder Int     @default(0)
-  isPrimary Boolean @default(false)
+// New Variant Model (Ported from SilkMart)
+model ProductVariant {
+  id            String   @id @default(cuid())
+  productId     String
+  name          String   // e.g. "XL / Red"
+  sku           String?  @unique
+  price         Float?   // Override base price
+  stock         Int      @default(0)
+  attributes    Json?    // { size: "XL", color: "Red" }
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@index([productId])
-  @@map("product_images")
+  @@map("product_variants")
 }
 
-// ============================================
-// REVIEWS
-// ============================================
-
-model Review {
-  id          String   @id @default(cuid())
-  productId   String
-  userId      String
-  rating      Int      // 1-5
-  title       String?
-  comment     String?  @db.Text
-  aiSentiment String?  // positive, negative, neutral
-  aiReply     String?  @db.Text // AI-generated reply suggestion
-  isApproved  Boolean  @default(false)
-  isVerified  Boolean  @default(false) // verified purchase
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([productId, userId])
-  @@index([productId])
-  @@index([userId])
-  @@index([isApproved])
-  @@map("reviews")
-}
-
-// ============================================
-// WISHLIST
-// ============================================
-
-model WishlistItem {
-  id        String   @id @default(cuid())
-  userId    String
-  productId String
-  createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, productId])
-  @@index([userId])
-  @@map("wishlist")
-}
-
-// ============================================
-// ORDERS
-// ============================================
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
-}
-
-enum PaymentMethod {
-  BKASH
-  NAGAD
-  COD
-  BANK_TRANSFER
-}
-
-enum PaymentStatus {
-  PENDING
-  PAID
-  FAILED
-  REFUNDED
-}
-
+// Order System
 model Order {
-  id              String        @id @default(cuid())
-  orderNumber     String        @unique // ARKIVE-XXXXXX
-  userId          String
-  addressId       String?
-  status          OrderStatus   @default(PENDING)
-  paymentMethod   PaymentMethod @default(COD)
-  paymentStatus   PaymentStatus @default(PENDING)
-  paymentRef      String?       // bKash/Nagad transaction ID
-  subtotal        Decimal       @db.Decimal(10, 2)
-  shippingCost    Decimal       @default(0) @db.Decimal(10, 2)
-  discount        Decimal       @default(0) @db.Decimal(10, 2)
-  total           Decimal       @db.Decimal(10, 2)
-  couponCode      String?
-  trackingNumber  String?
-  trackingUrl     String?
-  notes           String?       @db.Text // customer notes
-  adminNotes      String?       @db.Text // internal notes
-  shippedAt       DateTime?
-  deliveredAt     DateTime?
-  cancelledAt     DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id            String      @id @default(cuid())
+  userId        String?
+  orderNumber   String      @unique
+  status        OrderStatus @default(PENDING)
+  total         Float
+  subtotal      Float
+  shippingCost  Float       @default(0)
+  discount      Float       @default(0)
+  
+  // Contact & Shipping
+  email         String
+  phone         String?
+  address       Json        // Snapshot of address
+  
+  paymentMethod String      @default("cod")
+  isPaid        Boolean     @default(false)
+  paidAt        DateTime?
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
-  user    User       @relation(fields: [userId], references: [id])
-  address Address?   @relation(fields: [addressId], references: [id])
-  items   OrderItem[]
+  user          User?       @relation(fields: [userId], references: [id])
+  items         OrderItem[]
 
-  @@index([userId])
-  @@index([orderNumber])
-  @@index([status])
-  @@index([createdAt])
   @@map("orders")
 }
 
@@ -310,140 +206,110 @@ model OrderItem {
   id        String  @id @default(cuid())
   orderId   String
   productId String
-  name      String  // snapshot at time of order
-  price     Decimal @db.Decimal(10, 2)
+  variantId String? // If variant
+  
+  name      String
+  price     Float
   quantity  Int
-  image     String? // snapshot
+  image     String?
+  
+  createdAt DateTime @default(now())
 
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
 
-  @@index([orderId])
-  @@index([productId])
   @@map("order_items")
 }
 
-// ============================================
-// SITE SETTINGS (Key-Value Store)
-// ============================================
+// Customer Features
+model Review {
+  id         String   @id @default(cuid())
+  rating     Int
+  title      String?
+  comment    String?  @db.Text
+  isVerified Boolean  @default(false)
+  isApproved Boolean  @default(false)
+  
+  userId     String
+  productId  String
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-model SiteSetting {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  value     String   @db.Text
-  type      String   @default("string") // string, number, boolean, json, image
-  group     String   @default("general") // general, seo, appearance, shipping
-  label     String?  // human-readable label for admin UI
-  updatedAt DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@index([key])
-  @@index([group])
-  @@map("site_settings")
+  @@unique([productId, userId])
+  @@map("reviews")
 }
 
-// ============================================
-// AI CHAT (Silk Assistant)
-// ============================================
-
-model AIChatSession {
-  id        String          @id @default(cuid())
-  userId    String?         // null for anonymous
-  title     String?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-
-  user     User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
-  messages AIChatMessage[]
-
-  @@index([userId])
-  @@map("ai_chat_sessions")
-}
-
-model AIChatMessage {
+model Wishlist {
   id        String   @id @default(cuid())
-  sessionId String
-  role      String   // "user" | "assistant" | "system"
-  content   String   @db.Text
-  metadata  Json?    // product refs, actions, etc.
+  userId    String
+  productId String
   createdAt DateTime @default(now())
 
-  session AIChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@index([sessionId])
-  @@map("ai_chat_messages")
+  @@unique([userId, productId])
+  @@map("wishlists")
 }
 
-// ============================================
-// COUPONS
-// ============================================
-
-enum DiscountType {
-  PERCENTAGE
-  FIXED
-}
-
-model Coupon {
-  id            String       @id @default(cuid())
-  code          String       @unique
-  description   String?
-  discountType  DiscountType @default(PERCENTAGE)
-  discountValue Decimal      @db.Decimal(10, 2)
-  minOrderValue Decimal?     @db.Decimal(10, 2)
-  maxUses       Int?
-  usedCount     Int          @default(0)
-  isActive      Boolean      @default(true)
-  startsAt      DateTime?
-  expiresAt     DateTime?
-  createdAt     DateTime     @default(now())
-
-  @@index([code])
-  @@index([isActive])
-  @@map("coupons")
-}
-
-// ============================================
-// STOREFRONT LAYOUT
-// ============================================
-
-model HeroGridItem {
+model Address {
   id          String   @id @default(cuid())
-  position    Int      // 1 (large), 2 (bottom left), 3 (bottom right)
-  title       String
-  subtitle    String?
-  imageUrl    String
-  link        String
+  userId      String
+  type        String   @default("shipping") // shipping, billing
+  name        String
+  phone       String
+  street      String
+  city        String
+  state       String?
+  postalCode  String
+  country     String   @default("Bangladesh")
+  isDefault   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@unique([position])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+// --------------------------------------------------------
+// Store Configuration (New from SilkMart)
+// --------------------------------------------------------
+
+model HeroGridItem {
+  id        String   @id @default(cuid())
+  position  Int      @unique // 1, 2, 3
+  title     String
+  subtitle  String?
+  imageUrl  String?  // Made optional for easier saving
+  link      String   @default("#")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@map("hero_grid_items")
 }
 
-// ============================================
-// SYSTEM LOGS (Super Console)
-// ============================================
+model StoreSettings {
+  id                String   @id @default("main")
+  storeName         String   @default("ARKIVE")
+  storeEmail        String?
+  storePhone        String?
+  currency          String   @default("BDT")
+  
+  // Policies (Ported from SilkMart context)
+  shippingPolicy    String?  @db.Text
+  returnPolicy      String?  @db.Text
+  
+  // AI Settings
+  aiEnabled         Boolean  @default(true)
+  aiModel           String   @default("gemini-2.0-flash")
+  
+  updatedAt         DateTime @updatedAt
 
-enum LogLevel {
-  INFO
-  WARN
-  ERROR
-  CRITICAL
-}
-
-model SystemLog {
-  id        String   @id @default(cuid())
-  level     LogLevel @default(INFO)
-  action    String
-  message   String   @db.Text
-  metadata  Json?    // Any extra details
-  userId    String?  // Who performed the action (if known)
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([level])
-  @@index([action])
-  @@index([createdAt])
-  @@map("system_logs")
+  @@map("store_settings")
 }

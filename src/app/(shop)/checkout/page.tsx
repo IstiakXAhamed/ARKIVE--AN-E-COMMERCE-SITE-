@@ -18,7 +18,7 @@ import {
   Banknote,
   CheckCircle2,
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cart";
 import { cn } from "@/lib/utils";
 

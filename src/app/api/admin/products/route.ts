@@ -2,80 +2,81 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
-// GET /api/admin/products - List products with search and pagination
+// Helper to check admin role
+async function checkAdmin(req: NextRequest) {
+  const session = await auth();
+  if (
+    !session?.user ||
+    !["ADMIN", "SUPERADMIN"].includes(session.user.role)
+  ) {
+    return null;
+  }
+  return session.user;
+}
+
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "SUPERADMIN"].includes(session.user.role)) {
+    const admin = await checkAdmin(req);
+    if (!admin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
-    const search = searchParams.get("search") || "";
-    const status = searchParams.get("status") || "all";
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
+    const search = searchParams.get("search") || "";
+    const category = searchParams.get("category") || "all";
 
     const where: any = {};
-    
+
     if (search) {
       where.OR = [
         { name: { contains: search } },
-        { category: { name: { contains: search } } },
-        { subcategory: { contains: search } },
+        { description: { contains: search } },
+        { sku: { contains: search } },
       ];
     }
 
-    if (status === "active") {
-      where.isActive = true;
-    } else if (status === "draft") {
-      where.isActive = false;
-    } else if (status === "outofstock") {
-      where.stock = 0;
+    if (category && category !== "all") {
+      where.categorySlug = category;
     }
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
         include: {
-          images: { where: { isPrimary: true }, take: 1 },
           category: true,
+          variants: true,
         },
+        orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: "desc" },
       }),
       prisma.product.count({ where }),
     ]);
 
     return NextResponse.json({
-      products: products.map((p) => ({
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        price: Number(p.price),
-        originalPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
-        stock: p.stock,
-        status: p.stock > 10 ? "Active" : p.stock > 0 ? "Low Stock" : "Out of Stock",
-        image: p.images[0]?.url || null,
-        category: p.category?.name || null,
-        subcategory: p.subcategory || null,
-      })),
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
+      products,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
     console.error("GET products error:", error);
-    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch products" },
+      { status: 500 }
+    );
   }
 }
 
-// POST /api/admin/products - Create new product
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "SUPERADMIN"].includes(session.user.role)) {
+    const admin = await checkAdmin(req);
+    if (!admin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -86,64 +87,89 @@ export async function POST(req: NextRequest) {
       description,
       shortDesc,
       price,
-      compareAtPrice,
-      costPrice,
-      stock,
-      lowStockAlert,
-      weight,
+      originalPrice,
       categoryId,
-      subcategory,
-      tags,
-      badge,
-      isActive,
+      image,
+      images,
+      stock,
+      sku,
       isFeatured,
+      isNew,
+      isOnSale,
+      isActive,
       metaTitle,
       metaDescription,
-      images,
+      metaKeywords,
+      productType,
+      variants,
     } = body;
 
-    // Generate slug if not provided
-    const productSlug = slug || name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    // Basic Validation
+    if (!name || !price || !categoryId || !image) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Check slug uniqueness
+    const existing = await prisma.product.findUnique({ where: { slug } });
+    if (existing) {
+      return NextResponse.json(
+        { error: "Product slug already exists" },
+        { status: 409 }
+      );
+    }
 
     const product = await prisma.product.create({
       data: {
         name,
-        slug: productSlug,
+        slug: slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
         description,
-        shortDesc,
+        shortDesc: shortDesc || description.substring(0, 160),
         price: parseFloat(price),
-        compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
-        costPrice: costPrice ? parseFloat(costPrice) : null,
-        stock: parseInt(stock) || 0,
-        lowStockAlert: parseInt(lowStockAlert) || 5,
-        weight: weight ? parseFloat(weight) : null,
+        originalPrice: originalPrice ? parseFloat(originalPrice) : null,
         categoryId,
-        subcategory,
-        tags,
-        badge,
+        image,
+        images: images || [], // JSON array
+        stock: parseInt(stock) || 0,
+        sku: sku || null,
+        isFeatured: isFeatured || false,
+        isNew: isNew || true,
+        isOnSale: isOnSale || !!(originalPrice && parseFloat(originalPrice) > parseFloat(price)),
         isActive: isActive !== false,
-        isFeatured: isFeatured === true,
         metaTitle,
         metaDescription,
+        metaKeywords,
+        productType: productType || "clothing",
+        variants: {
+          create: variants?.map((v: any) => ({
+            name: v.name || `${v.attributes?.size || ""} ${v.attributes?.color || ""}`.trim() || "Variant",
+            sku: v.sku || null,
+            price: v.price ? parseFloat(v.price) : null,
+            stock: parseInt(v.stock) || 0,
+            attributes: v.attributes || {},
+          })) || [],
+        },
+      },
+      include: {
+        category: true,
+        variants: true,
       },
     });
 
-    // Create product images if provided
-    if (images && Array.isArray(images) && images.length > 0) {
-      await prisma.productImage.createMany({
-        data: images.map((img: any, index: number) => ({
-          productId: product.id,
-          url: img.url,
-          alt: img.alt || name,
-          sortOrder: index,
-          isPrimary: index === 0,
-        })),
-      });
+    return NextResponse.json({ success: true, product });
+  } catch (error: any) {
+    console.error("CREATE product error:", error);
+    if (error.code === "P2002") {
+      return NextResponse.json(
+        { error: "Product with this SKU or slug already exists" },
+        { status: 409 }
+      );
     }
-
-    return NextResponse.json({ product: { id: product.id, slug: product.slug } }, { status: 201 });
-  } catch (error) {
-    console.error("POST product error:", error);
-    return NextResponse.json({ error: "Failed to create product" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create product" },
+      { status: 500 }
+    );
   }
 }

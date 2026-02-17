@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { MobileAppBanner } from "@/components/layout/MobileAppBanner";
+import AIChatAssistant from "@/components/AIChatAssistant";
 
 // Force dynamic rendering to reduce build memory usage on shared hosting
 export const dynamicParams = true;
@@ -81,6 +82,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${playfair.variable} antialiased bg-surface-50`}>
         {children}
+        <AIChatAssistant />
         <MobileAppBanner />
         <ServiceWorkerRegister />
       </body>

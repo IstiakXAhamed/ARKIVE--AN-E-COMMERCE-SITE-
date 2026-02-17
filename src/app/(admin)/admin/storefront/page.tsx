@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Layout, Save, Loader2, Edit2, Link as LinkIcon } from "lucide-react";
+import { Layout, Save, Loader2, Edit2, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 
 interface HeroItem {
@@ -13,18 +13,14 @@ interface HeroItem {
   link: string;
 }
 
-const defaultItems = [
-  { position: 1, title: "", subtitle: "", imageUrl: "", link: "" },
-  { position: 2, title: "", subtitle: "", imageUrl: "", link: "" },
-  { position: 3, title: "", subtitle: "", imageUrl: "", link: "" },
-];
-
 export default function StorefrontPage() {
   const [items, setItems] = useState<HeroItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingPos, setEditingPos] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [imageMode, setImageMode] = useState<"upload" | "url">("upload");
 
   useEffect(() => {
     fetchItems();
@@ -54,10 +50,19 @@ export default function StorefrontPage() {
     };
     setEditForm(item);
     setEditingPos(position);
+    setError("");
+    setImageMode(item.imageUrl ? "url" : "upload");
   };
 
   const handleSave = async () => {
     if (!editForm) return;
+    setError("");
+
+    if (!editForm.title?.trim()) {
+      setError("Title is required");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const res = await fetch("/api/admin/layout/hero", {
@@ -66,15 +71,17 @@ export default function StorefrontPage() {
         body: JSON.stringify(editForm),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
         await fetchItems();
         setEditingPos(null);
         setEditForm(null);
       } else {
-        alert("Failed to save changes");
+        setError(data.error || "Failed to save changes");
       }
     } catch (err) {
-      alert("Failed to save changes");
+      setError("Network error — check your connection");
     } finally {
       setIsSaving(false);
     }
@@ -129,7 +136,7 @@ export default function StorefrontPage() {
                     <Edit2 size={14} /> Edit Main Banner
                   </span>
                 </div>
-                {getItem(1) && (
+                {getItem(1)?.title && (
                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent text-white">
                     <p className="font-bold text-lg">{getItem(1)?.title}</p>
                     <p className="text-sm opacity-90">{getItem(1)?.subtitle}</p>
@@ -155,7 +162,7 @@ export default function StorefrontPage() {
                     <Edit2 size={14} /> Edit
                   </span>
                 </div>
-                {getItem(2) && (
+                {getItem(2)?.title && (
                   <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent text-white">
                     <p className="font-bold">{getItem(2)?.title}</p>
                   </div>
@@ -180,7 +187,7 @@ export default function StorefrontPage() {
                     <Edit2 size={14} /> Edit
                   </span>
                 </div>
-                {getItem(3) && (
+                {getItem(3)?.title && (
                   <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent text-white">
                     <p className="font-bold">{getItem(3)?.title}</p>
                   </div>
@@ -200,16 +207,63 @@ export default function StorefrontPage() {
           
           {editForm ? (
             <div className="p-4 space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              {/* Image - Toggle between Upload and URL */}
               <div>
-                <label className="form-label">Image</label>
-                <ImageUpload
-                  value={editForm.imageUrl}
-                  onChange={(url) => setEditForm({ ...editForm, imageUrl: url })}
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="form-label mb-0">Image</label>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setImageMode("upload")}
+                      className={`px-2 py-1 text-xs rounded ${imageMode === "upload" ? "bg-emerald-100 text-emerald-700" : "text-gray-500 hover:bg-gray-100"}`}
+                    >
+                      Upload
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageMode("url")}
+                      className={`px-2 py-1 text-xs rounded ${imageMode === "url" ? "bg-emerald-100 text-emerald-700" : "text-gray-500 hover:bg-gray-100"}`}
+                    >
+                      Paste URL
+                    </button>
+                  </div>
+                </div>
+
+                {imageMode === "upload" ? (
+                  <ImageUpload
+                    value={editForm.imageUrl}
+                    onChange={(url) => setEditForm({ ...editForm, imageUrl: url })}
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                      <input
+                        type="url"
+                        value={editForm.imageUrl || ""}
+                        onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })}
+                        className="form-input pl-10"
+                        placeholder="https://images.unsplash.com/..."
+                      />
+                    </div>
+                    {editForm.imageUrl && (
+                      <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-gray-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={editForm.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="form-label">Title</label>
+                <label className="form-label">Title *</label>
                 <input
                   type="text"
                   value={editForm.title}
@@ -249,6 +303,7 @@ export default function StorefrontPage() {
                   onClick={() => {
                     setEditingPos(null);
                     setEditForm(null);
+                    setError("");
                   }}
                   className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
                 >
@@ -257,9 +312,19 @@ export default function StorefrontPage() {
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {isSaving ? "Saving..." : "Save Changes"}
+                  {isSaving ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={14} />
+                      Save Changes
+                    </>
+                  )}
                 </button>
               </div>
             </div>
