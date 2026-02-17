@@ -21,6 +21,7 @@ import {
   Layout,
   ShieldAlert,
   ExternalLink,
+  MessageSquare,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ const navItems = [
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
   { label: "Customers", href: "/admin/customers", icon: Users },
   { label: "Coupons", href: "/admin/coupons", icon: Tag },
+  { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
   { label: "AI Tools", href: "/admin/ai-tools", icon: Sparkles },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];

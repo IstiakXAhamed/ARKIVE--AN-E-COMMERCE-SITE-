@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProductData } from "@/lib/db/types";
+import { ProductReviews } from "@/components/ProductReviews";
 
 interface ProductDetailProps {
   product: ProductData;
@@ -268,6 +269,9 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailP
               </div>
             </motion.div>
           </div>
+
+          {/* Customer Reviews */}
+          <ProductReviews productId={product.id} productName={product.name} />
 
           {/* Related Products */}
           {relatedProducts.length > 0 && (

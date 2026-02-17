@@ -1,92 +1,73 @@
-import { NextRequest, NextResponse } from "next/server";
-import { logSystemAction } from "@/lib/logger";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
-/**
- * Health Check API Endpoint
- * 
- * Purpose: Verify the API routing layer and database connectivity
- * 
- * Endpoint: GET/POST /api/health
- * Response: 200 OK with JSON status including database connectivity
- * 
- * Use cases:
- * - Server uptime monitoring
- * - Load balancer health checks
- * - API and database connectivity verification
- * - Logging health checks to system logs
- */
+export const dynamic = "force-dynamic";
 
-/**
- * Check database connectivity using a simple SELECT 1 query
- */
-async function checkDatabaseConnectivity(): Promise<"connected" | "disconnected"> {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    return "connected";
-  } catch (error) {
-    return "disconnected";
-  }
-}
+export async function GET() {
+  const checks: Record<string, { status: string; value?: string }> = {};
 
-export async function GET(request: NextRequest) {
-  // Check database connectivity (non-blocking)
-  const database = await checkDatabaseConnectivity();
+  // Database
+  checks["DATABASE_URL"] = {
+    status: process.env.DATABASE_URL ? "✅ SET" : "❌ MISSING",
+  };
 
-  // Log health check (non-blocking - fire and forget)
-  logSystemAction({
-    action: "HEALTH_CHECK",
-    message: "Health check endpoint accessed",
-    level: "INFO",
-    metadata: {
-      method: "GET",
-      path: "/api/health",
-      database,
-    },
-  }).catch(() => {
-    // Silently fail if logging fails - don't affect health endpoint
+  // Auth
+  checks["AUTH_SECRET"] = {
+    status: process.env.AUTH_SECRET ? "✅ SET" : "❌ MISSING",
+  };
+  checks["NEXTAUTH_SECRET"] = {
+    status: process.env.NEXTAUTH_SECRET ? "✅ SET" : "❌ MISSING",
+  };
+  checks["NEXTAUTH_URL"] = {
+    status: process.env.NEXTAUTH_URL ? "✅ SET" : "❌ MISSING",
+    value: process.env.NEXTAUTH_URL || "",
+  };
+  checks["AUTH_URL"] = {
+    status: process.env.AUTH_URL ? "✅ SET" : "❌ MISSING",
+    value: process.env.AUTH_URL || "",
+  };
+
+  // Google Auth
+  checks["AUTH_GOOGLE_ID"] = {
+    status: process.env.AUTH_GOOGLE_ID ? "✅ SET" : "❌ MISSING",
+  };
+  checks["AUTH_GOOGLE_SECRET"] = {
+    status: process.env.AUTH_GOOGLE_SECRET ? "✅ SET" : "❌ MISSING",
+  };
+
+  // AI
+  checks["GOOGLE_AI_API_KEY"] = {
+    status: process.env.GOOGLE_AI_API_KEY ? "✅ SET" : "❌ MISSING",
+    value: process.env.GOOGLE_AI_API_KEY
+      ? `${process.env.GOOGLE_AI_API_KEY.substring(0, 10)}...`
+      : "",
+  };
+
+  // Cloudinary
+  checks["CLOUDINARY_CLOUD_NAME"] = {
+    status: process.env.CLOUDINARY_CLOUD_NAME ? "✅ SET" : "❌ MISSING",
+    value: process.env.CLOUDINARY_CLOUD_NAME || "",
+  };
+  checks["CLOUDINARY_API_KEY"] = {
+    status: process.env.CLOUDINARY_API_KEY ? "✅ SET" : "❌ MISSING",
+  };
+  checks["CLOUDINARY_API_SECRET"] = {
+    status: process.env.CLOUDINARY_API_SECRET ? "✅ SET" : "❌ MISSING",
+  };
+
+  // App URLs
+  checks["NEXT_PUBLIC_APP_URL"] = {
+    status: process.env.NEXT_PUBLIC_APP_URL ? "✅ SET" : "❌ MISSING",
+    value: process.env.NEXT_PUBLIC_APP_URL || "",
+  };
+
+  // Count issues
+  const missing = Object.values(checks).filter((c) => c.status.includes("MISSING")).length;
+
+  return NextResponse.json({
+    healthy: missing === 0,
+    missing_count: missing,
+    checks,
+    node_env: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
   });
-
-  return NextResponse.json(
-    {
-      status: "ok",
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      environment: process.env.NODE_ENV || "development",
-      database,
-    },
-    { status: 200 }
-  );
-}
-
-export async function POST(request: NextRequest) {
-  // Allow POST for compatibility with various health check systems
-  
-  // Check database connectivity (non-blocking)
-  const database = await checkDatabaseConnectivity();
-
-  // Log health check (non-blocking - fire and forget)
-  logSystemAction({
-    action: "HEALTH_CHECK",
-    message: "Health check endpoint accessed",
-    level: "INFO",
-    metadata: {
-      method: "POST",
-      path: "/api/health",
-      database,
-    },
-  }).catch(() => {
-    // Silently fail if logging fails - don't affect health endpoint
-  });
-
-  return NextResponse.json(
-    {
-      status: "ok",
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      environment: process.env.NODE_ENV || "development",
-      database,
-    },
-    { status: 200 }
-  );
 }
