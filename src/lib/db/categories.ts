@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 export interface CategoryWithCount {
   name: string;
   slug: string;
-  icon: string;
   count: number;
 }
 
@@ -23,14 +22,13 @@ export async function getCategoriesWithCounts(): Promise<CategoryWithCount[]> {
         },
       },
       orderBy: {
-        sortOrder: 'asc',
+        createdAt: 'desc', 
       },
     });
 
     return categories.map((cat) => ({
       name: cat.name,
       slug: cat.slug,
-      icon: cat.icon || "📦",
       count: cat._count.products,
     }));
   } catch (error) {

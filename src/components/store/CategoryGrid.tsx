@@ -6,7 +6,6 @@ import Link from "next/link";
 interface Category {
   name: string;
   slug: string;
-  icon: string;
   count: number;
 }
 
@@ -27,7 +26,7 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
           </p>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
           {categories.map((category, index) => (
             <motion.div
               key={category.slug}
@@ -38,15 +37,17 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
             >
               <Link
                 href={`/category/${category.slug}`}
-                className="group block bg-gray-50 hover:bg-emerald-50 rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-6 text-center transition-all duration-300 hover:shadow-lg"
+                className="group block bg-gray-50 hover:bg-emerald-50 rounded-xl md:rounded-2xl p-4 sm:p-6 text-center transition-all duration-300 hover:shadow-lg h-full flex flex-col justify-center items-center"
               >
-                <span className="text-2xl sm:text-3xl md:text-4xl mb-2 md:mb-4 block group-hover:scale-110 transition-transform">
-                  {category.icon}
-                </span>
-                <h3 className="font-semibold text-gray-800 group-hover:text-emerald-600 transition-colors text-xs sm:text-sm md:text-base">
+                <div className="w-12 h-12 mb-3 bg-emerald-100 rounded-full flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
+                   <span className="text-emerald-600 font-bold text-lg">
+                      {category.name.charAt(0)}
+                   </span>
+                </div>
+                <h3 className="font-semibold text-gray-800 group-hover:text-emerald-600 transition-colors text-sm sm:text-base">
                   {category.name}
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5 md:mt-1 hidden sm:block">
+                <p className="text-xs text-gray-500 mt-1">
                   {category.count}+ Products
                 </p>
               </Link>

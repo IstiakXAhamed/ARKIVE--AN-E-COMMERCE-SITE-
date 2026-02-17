@@ -54,7 +54,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       <section className="bg-gradient-to-r from-emerald-50 to-white py-8 md:py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-3">
-            <span className="text-4xl">{category.icon}</span>
+
             <div>
               <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
                 {category.name}
