@@ -282,3 +282,95 @@ Return ONLY valid JSON.`
     return { success: false, error: e.message }
   }
 }
+
+// ============ Product AI Tools ============
+
+export async function generateAdvancedDescription(
+  productName: string,
+  options: { category?: string; tone?: string; language?: string; storeName?: string }
+): Promise<AIResponse> {
+  try {
+    const prompt = `Generate a premium product description for "${productName}".
+    Context:
+    - Store: ${options.storeName || "ARKIVE"}
+    - Category: ${options.category || "General"}
+    - Tone: ${options.tone || "Professional"}
+    - Language: ${options.language || "English"}
+    
+    Output: A single paragraph, engaging and SEO-friendly description (approx 100 words).`;
+    
+    const result = await callGeminiAI(prompt, { temperature: 0.7 });
+    return { success: true, result: result.trim() };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+export async function getSmartSuggestions(
+  input: string,
+  type: "tags" | "product_name" | "seo"
+): Promise<AIResponse> {
+  try {
+    let prompt = "";
+    if (type === "tags") {
+      prompt = `Generate 10 trending SEO tags for a product named "${input}". Return ONLY a JSON array of strings e.g. ["tag1", "tag2"].`;
+    } else if (type === "product_name") {
+       prompt = `Generate 5 catchy, premium product names based on "${input}". Return ONLY a JSON array of strings.`;
+    } else {
+       prompt = `Generate SEO keywords for "${input}". Return ONLY a JSON array of strings.`;
+    }
+
+    const result = await callGeminiAI(prompt, { temperature: 0.7 });
+    const json = parseAIJSON(result, []);
+    return { success: true, result: json };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+export async function analyzeProductForSuggestions(
+  productName: string,
+  storeName: string
+): Promise<AIResponse> {
+  try {
+    const prompt = `Analyze the product title "${productName}" for "${storeName}".
+    Return a JSON object with:
+    {
+      "categorySuggestion": "Recommended Category",
+      "marketPosition": "Economy/Mid-Range/Premium",
+      "targetAudience": "Teenagers/Professionals/etc",
+      "priceEstimate": "Estimated price range (string)"
+    }`;
+
+    const result = await callGeminiAI(prompt, { temperature: 0.5 });
+    const json = parseAIJSON(result, {
+      categorySuggestion: "Uncategorized",
+      marketPosition: "General",
+      targetAudience: "General",
+      priceEstimate: "$0 - $100"
+    });
+    return { success: true, result: json };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+export async function rewriteContent(
+  content: string,
+  options: { tone?: string; language?: string; storeName?: string }
+): Promise<AIResponse> {
+  try {
+    const prompt = `Rewrite the following text to be more ${options.tone || "professional"} and suited for ${options.storeName || "our brand"}.
+    Language: ${options.language || "English"}
+    
+    Original Text:
+    "${content}"
+    
+    Return ONLY the rewritten text.`;
+    
+    const result = await callGeminiAI(prompt, { temperature: 0.7 });
+    return { success: true, result: result.trim() };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
