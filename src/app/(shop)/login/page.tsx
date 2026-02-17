@@ -38,8 +38,9 @@ function LoginForm() {
         return;
       }
 
-      router.push(callbackUrl);
-      router.refresh();
+      // Use full page reload instead of client-side navigation
+      // This ensures the middleware reads the fresh session cookie
+      window.location.href = callbackUrl;
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);

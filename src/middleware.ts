@@ -3,7 +3,9 @@ import { getToken } from "next-auth/jwt";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
+  // Try AUTH_SECRET first, then NEXTAUTH_SECRET as fallback
+  const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+  const token = await getToken({ req, secret });
   const isLoggedIn = !!token;
   const userRole = token?.role as string | undefined;
 
