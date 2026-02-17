@@ -38,10 +38,15 @@ if [ "$1" = "build" ]; then
   # Generate Prisma client AFTER npm install so it detects server's OpenSSL version
   npx prisma generate
 
+
   echo "🗄️  Syncing Database Schema..."
   npx prisma db push --accept-data-loss
 
+  echo "🧹 Removing legacy/conflicting scripts..."
+  rm -f scripts/seed.ts
+
   echo "🏗️  Building Next.js application..."
+
   
   # CRITICAL NPROC PROTECTION: Prevent spawning dozens of worker processes
   # This ensures the build stays within cPanel limits (usually 50 NPROC)
