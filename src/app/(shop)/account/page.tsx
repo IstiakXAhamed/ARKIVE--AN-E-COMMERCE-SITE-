@@ -15,7 +15,7 @@ import {
   Settings,
   Shield,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/ui-button";
 
 const accountLinks = [
   {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Smartphone, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/ui-button";
 
 export function MobileAppBanner() {
   const [isVisible, setIsVisible] = useState(false);

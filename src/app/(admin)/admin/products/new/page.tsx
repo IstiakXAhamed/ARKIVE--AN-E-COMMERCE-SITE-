@@ -7,7 +7,7 @@ import { ArrowLeft, Save, Loader2, X, AlertCircle } from "lucide-react";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import AIProductAssist from "@/components/admin/AIProductAssist";
 import VariantManager from "@/components/admin/VariantManager";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/ui-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
