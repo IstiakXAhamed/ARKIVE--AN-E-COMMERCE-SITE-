@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { Bell, Search } from "lucide-react";
 
 export function AdminHeader() {
@@ -21,10 +22,10 @@ export function AdminHeader() {
       {/* Right side */}
       <div className="flex items-center gap-4 ml-4">
         {/* Notifications */}
-        <button className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-600">
+        <Link href="/admin/orders" className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-600">
           <Bell size={18} />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
+        </Link>
 
         {/* User */}
         <div className="flex items-center gap-3">

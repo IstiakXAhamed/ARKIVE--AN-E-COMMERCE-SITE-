@@ -20,6 +20,7 @@ import {
   X,
   Layout,
   ShieldAlert,
+  ExternalLink,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -51,8 +52,22 @@ export function AdminSidebar() {
 
   return (
     <>
-      {/* ... (Mobile menu button and overlay remain same) */}
-      
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="fixed top-4 left-4 z-50 lg:hidden w-10 h-10 bg-white rounded-lg shadow-md flex items-center justify-center"
+      >
+        <Menu size={20} />
+      </button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
         className={cn(
@@ -61,7 +76,30 @@ export function AdminSidebar() {
           mobileOpen ? "left-0" : "-left-64 lg:left-0"
         )}
       >
-        {/* ... (Logo section remains same) */}
+        {/* Logo */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
+          {!collapsed && (
+            <Link href="/admin" className="font-display text-xl font-bold text-gray-900 tracking-tight">
+              ARKIVE
+            </Link>
+          )}
+          
+          {/* Mobile close */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100"
+          >
+            <X size={18} />
+          </button>
+
+          {/* Desktop collapse */}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400"
+          >
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+        </div>
 
         {/* Navigation */}
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto custom-scrollbar">
@@ -118,7 +156,29 @@ export function AdminSidebar() {
           )}
         </nav>
 
-        {/* ... (Bottom actions remain same) */}
+        {/* Bottom Actions */}
+        <div className="p-3 border-t border-gray-200 space-y-1">
+          {/* Back to Store */}
+          <Link
+            href="/"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition-all group"
+            title={collapsed ? "Back to Store" : undefined}
+          >
+            <Store size={20} className="shrink-0 text-emerald-500" />
+            {!collapsed && <span>Back to Store</span>}
+            {!collapsed && <ExternalLink size={14} className="ml-auto text-emerald-400" />}
+          </Link>
+
+          {/* Sign Out */}
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all group"
+            title={collapsed ? "Sign Out" : undefined}
+          >
+            <LogOut size={20} className="shrink-0 text-gray-400 group-hover:text-red-500" />
+            {!collapsed && <span>Sign Out</span>}
+          </button>
+        </div>
       </aside>
     </>
   );
