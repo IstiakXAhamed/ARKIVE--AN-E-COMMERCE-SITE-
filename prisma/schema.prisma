@@ -294,6 +294,22 @@ model HeroGridItem {
   @@map("hero_grid_items")
 }
 
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  type      String   @default("string") 
+  group     String   @default("general")
+  label     String?
+  description String?
+  isPublic  Boolean  @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
 model StoreSettings {
   id                String   @id @default("main")
   storeName         String   @default("ARKIVE")

@@ -4,15 +4,13 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { authConfig } from "./auth.config";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma as never),
   session: { strategy: "jwt" },
   trustHost: true,
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
@@ -58,26 +56,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
-      if (user) {
-        token.id = user.id;
-        token.role = (user as { role?: string }).role ?? "CUSTOMER";
-      }
-
-      // Handle session update (e.g. name change)
-      if (trigger === "update" && session) {
-        token.name = session.name;
-      }
-
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-      }
-      return session;
-    },
+    ...authConfig.callbacks,
     async signIn({ user, account }) {
       // For OAuth sign-ins, update the provider field
       if (account?.provider === "google" && user.email) {
