@@ -79,7 +79,7 @@ export function ShopClient({ products, categories }: ShopClientProps) {
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   )}
                 >
-                  {cat.icon} {cat.name}
+                  {cat.name}
                 </button>
               ))}
             </div>
