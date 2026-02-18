@@ -43,6 +43,9 @@ if [ "$1" = "build" ]; then
   echo "🗄️  Syncing Database Schema..."
   npx prisma db push --accept-data-loss
 
+  echo "🌱 Seeding database with products and categories..."
+  node prisma/seed.js || echo "⚠️  Seed already ran or skipped (upsert safe)"
+
   echo "🧹 Removing legacy/conflicting scripts..."
   rm -f scripts/seed.ts
   rm -f check-types.ts
