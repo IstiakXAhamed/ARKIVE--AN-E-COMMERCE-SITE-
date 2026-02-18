@@ -35,7 +35,8 @@ if [ "$1" = "build" ]; then
   npm install --legacy-peer-deps --no-audit
 
   echo "🔄 Generating Prisma Client for server platform..."
-  # Generate Prisma client AFTER npm install so it detects server's OpenSSL version
+  # Force clean regeneration - delete stale cache first
+  rm -rf node_modules/.prisma
   npx prisma generate
 
 
@@ -44,6 +45,7 @@ if [ "$1" = "build" ]; then
 
   echo "🧹 Removing legacy/conflicting scripts..."
   rm -f scripts/seed.ts
+  rm -f check-types.ts
 
   echo "🏗️  Building Next.js application..."
 
