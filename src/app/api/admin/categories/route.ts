@@ -22,7 +22,6 @@ export async function GET(req: NextRequest) {
         id: c.id,
         name: c.name,
         slug: c.slug,
-        icon: c.icon || "📦",
         description: c.description,
         image: c.image,
         sortOrder: c.sortOrder,
@@ -45,7 +44,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, slug, description, icon, image, sortOrder } = body;
+    const { name, slug, description, image, sortOrder } = body;
 
     // Generate slug if not provided
     const categorySlug = slug || name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
@@ -55,7 +54,6 @@ export async function POST(req: NextRequest) {
         name,
         slug: categorySlug,
         description,
-        icon,
         image,
         sortOrder: sortOrder || 0,
         isActive: true,

@@ -14,7 +14,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
     const body = await req.json();
-    const { name, slug, description, icon, image, sortOrder, isActive } = body;
+    const { name, slug, description, image, sortOrder, isActive } = body;
 
     const category = await prisma.category.update({
       where: { id },
@@ -22,7 +22,6 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         name,
         slug,
         description,
-        icon,
         image,
         sortOrder,
         isActive,

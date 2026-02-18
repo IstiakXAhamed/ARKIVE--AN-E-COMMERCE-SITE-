@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
         where,
         include: {
           category: true,
-          variants: true,
+          productVariants: true,
         },
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
         metaDescription,
         metaKeywords,
         productType: productType || "clothing",
-        variants: {
+        productVariants: {
           create: variants?.map((v: any) => ({
             name: v.name || `${v.attributes?.size || ""} ${v.attributes?.color || ""}`.trim() || "Variant",
             sku: v.sku || null,
@@ -150,11 +150,11 @@ export async function POST(req: NextRequest) {
             stock: parseInt(v.stock) || 0,
             attributes: v.attributes || {},
           })) || [],
-        },
+        }, // End variants
       },
       include: {
         category: true,
-        variants: true,
+        productVariants: true,
       },
     });
 

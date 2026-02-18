@@ -148,7 +148,7 @@ model Product {
   orderItems    OrderItem[]
   reviews       Review[]
   wishlists     Wishlist[]
-  variants      ProductVariant[] // New relation
+  productVariants ProductVariant[] // Renamed from variants to avoid conflict
 
   @@index([categoryId])
   @@index([slug])
