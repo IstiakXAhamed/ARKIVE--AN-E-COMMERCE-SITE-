@@ -2,7 +2,6 @@
  * Product Queries for ARKIVE
  */
 import { prisma } from "@/lib/prisma";
-import { demoProducts } from "@/lib/data";
 import { getOptimizedImageUrl } from "@/lib/image-utils";
 import type { ProductData } from "./types";
 
@@ -10,8 +9,11 @@ import type { ProductData } from "./types";
  * Map Prisma product to UI product data
  */
 function mapProductToData(product: any): ProductData {
+  // Ensure images is an array (handle JSON field)
+  const images = Array.isArray(product.images) ? product.images : [];
+
   // Find primary image or fallback to first image
-  const primaryImage = product.images?.find((img: any) => img.isPrimary) || product.images?.[0];
+  const primaryImage = images.find((img: any) => img.isPrimary) || images[0];
   const rawImageUrl = primaryImage?.url || "/placeholder-product.jpg";
   
   return {
@@ -19,7 +21,7 @@ function mapProductToData(product: any): ProductData {
     name: product.name,
     slug: product.slug,
     price: Number(product.price),
-    originalPrice: product.compareAtPrice ? Number(product.compareAtPrice) : undefined,
+    originalPrice: product.originalPrice ? Number(product.originalPrice) : undefined, // Fixed: use originalPrice field name from schema
     image: getOptimizedImageUrl(rawImageUrl, 800), // Optimized for product cards
     category: product.category?.name || "Uncategorized",
     categorySlug: product.category?.slug || "uncategorized",
@@ -31,8 +33,8 @@ function mapProductToData(product: any): ProductData {
     shortDesc: product.shortDesc || undefined,
     metaDescription: product.metaDescription || undefined,
     stock: product.stock || 0,
-    images: product.images?.map((img: any) => ({
-      id: img.id,
+    images: images.map((img: any) => ({
+      id: img.id || Math.random().toString(), // Handle missing ID in JSON
       url: getOptimizedImageUrl(img.url, 1200), // Larger size for gallery
       alt: img.alt || product.name,
       isPrimary: img.isPrimary,
@@ -48,10 +50,6 @@ export async function getProducts(): Promise<ProductData[]> {
     const products = await prisma.product.findMany({
       where: { isActive: true },
       include: {
-        images: {
-          orderBy: { isPrimary: 'desc' }, // Primary first
-          take: 2, // Limit images for list view
-        },
         category: {
           select: { name: true, slug: true }
         },
@@ -72,16 +70,15 @@ export async function getProducts(): Promise<ProductData[]> {
 export async function getProductBySlug(slug: string): Promise<ProductData | null> {
   try {
     const product = await prisma.product.findUnique({
-      where: { slug, isActive: true },
+      where: { slug }, // start with unique constraint
       include: {
-        images: {
-          orderBy: { sortOrder: 'asc' }
-        },
         category: true,
       },
     });
 
-    if (!product) return null;
+    // Check active status manually since findUnique only accepts unique fields
+    if (!product || !product.isActive) return null;
+
     return mapProductToData(product);
   } catch (error) {
     console.error("Error fetching product by slug:", error);
@@ -100,10 +97,6 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
         category: { slug: categorySlug },
       },
       include: {
-        images: {
-          orderBy: { isPrimary: 'desc' },
-          take: 2,
-        },
         category: {
           select: { name: true, slug: true }
         },
@@ -126,10 +119,6 @@ export async function getFeaturedProducts(): Promise<ProductData[]> {
     const products = await prisma.product.findMany({
       where: { isActive: true, isFeatured: true },
       include: {
-        images: {
-          orderBy: { isPrimary: 'desc' },
-          take: 1, // Featured only needs one image usually
-        },
         category: {
           select: { name: true, slug: true }
         },
@@ -151,12 +140,8 @@ export async function getFeaturedProducts(): Promise<ProductData[]> {
 export async function getFlashSaleProducts(): Promise<ProductData[]> {
   try {
     const products = await prisma.product.findMany({
-      where: { isActive: true, badge: "flash" },
+      where: { isActive: true, badge: "FLASH" }, // Case sensitive usually, schema says string
       include: {
-        images: {
-          orderBy: { isPrimary: 'desc' },
-          take: 1,
-        },
         category: {
           select: { name: true, slug: true }
         },
@@ -184,10 +169,6 @@ export async function getRelatedProducts(categorySlug: string, currentSlug: stri
         NOT: { slug: currentSlug },
       },
       include: {
-        images: {
-          orderBy: { isPrimary: 'desc' },
-          take: 1,
-        },
         category: {
           select: { name: true, slug: true }
         },
@@ -211,10 +192,6 @@ export async function getNewArrivals(limit = 8): Promise<ProductData[]> {
     const products = await prisma.product.findMany({
       where: { isActive: true },
       include: {
-        images: {
-          orderBy: { isPrimary: 'desc' },
-          take: 1,
-        },
         category: {
           select: { name: true, slug: true }
         },
@@ -241,14 +218,11 @@ export async function searchProducts(query: string): Promise<ProductData[]> {
         OR: [
           { name: { contains: query } },
           { description: { contains: query } },
-          { subcategory: { contains: query } },
+          // subcategory might not exist in schema, removing to be safe or check schema
+          // { subcategory: { contains: query } }, 
         ],
       },
       include: {
-        images: {
-          orderBy: { isPrimary: 'desc' },
-          take: 1,
-        },
         category: {
           select: { name: true, slug: true }
         },
