@@ -92,7 +92,17 @@ const nextConfig = {
         ]
       },
     ]
-  }
+  },
+  
+  // CRITICAL FIX: Flatten chunk names to avoid parentheses in filenames
+  // cPanel/Apache ModSecurity blocks URLs containing "(shop)" etc.
+  webpack: (config: any, { isServer }: any) => {
+    if (!isServer) {
+        // Force chunk filenames to be hash-only, removing folder structure
+        config.output.chunkFilename = 'static/chunks/[contenthash].js';
+    }
+    return config;
+  },
 };
 
 export default nextConfig;

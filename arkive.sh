@@ -115,10 +115,14 @@ else
   echo "TIP: Run './arkive.sh build' if you changed package.json or schema.prisma"
 fi
 
-# ── STEP 3: Clean stale static files ──
+# ── STEP 3: Update Static Files (Apache/Public Root) ──
 echo ""
-echo "Cleaning stale static files..."
-rm -rf ~/arkivee.com/_next
+echo "Updating static files in ~/arkivee.com/_next..."
+mkdir -p ~/arkivee.com/_next
+# First remove old to prevent buildup, then copy new
+rm -rf ~/arkivee.com/_next/*
+cp -r .next/static ~/arkivee.com/_next/
+echo "Static files updated in ~/arkivee.com/_next"
 
 # ── STEP 4: Restart ──
 echo ""
