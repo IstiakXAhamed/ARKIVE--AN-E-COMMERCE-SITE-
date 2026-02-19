@@ -34,6 +34,17 @@ VARS.forEach(key => {
   }
 });
 
+console.log("\n");
+
+if (process.env.NEXTAUTH_URL) {
+  if (!process.env.NEXTAUTH_URL.startsWith("http")) {
+    console.warn("⚠️  WARNING: NEXTAUTH_URL should start with http:// or https://");
+  }
+  console.log(`ℹ️  Based on NEXTAUTH_URL, your Google Redirect URI should be:`);
+  console.log(`   ${process.env.NEXTAUTH_URL}/api/auth/callback/google`);
+  console.log(`   (Make sure this EXACT value is in Google Cloud Console)`);
+}
+
 console.log("=====================================");
 if (missingCount > 0) {
   console.log(`❌ Found ${missingCount} missing variables.`);
