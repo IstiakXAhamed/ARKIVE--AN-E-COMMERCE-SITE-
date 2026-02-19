@@ -98,7 +98,12 @@ const nextConfig = {
   // cPanel/Apache ModSecurity blocks URLs containing "(shop)" etc.
   webpack: (config: any, { isServer }: any) => {
     if (!isServer) {
-        // Force chunk filenames to be hash-only, removing folder structure
+        // Aggressively remove names to prevent path leakage
+        if (config.optimization && config.optimization.splitChunks) {
+            config.optimization.splitChunks.name = false;
+        }
+        // Force filenames to be hash-only
+        config.output.filename = 'static/chunks/[contenthash].js';
         config.output.chunkFilename = 'static/chunks/[contenthash].js';
     }
     return config;
