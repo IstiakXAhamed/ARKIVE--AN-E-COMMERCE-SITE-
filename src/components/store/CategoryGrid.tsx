@@ -25,6 +25,11 @@ const CATEGORY_ICONS: Record<string, string> = {
   perfume: "🧴",
   new: "✨",
   sale: "🏷️",
+  couple: "💑",
+  watch: "⌚",
+  bag: "👜",
+  wallet: "👛",
+  footwear: "👟",
 };
 
 export function CategoryGrid({ categories }: CategoryGridProps) {

@@ -15,7 +15,9 @@ const VARS = [
   "DATABASE_URL",
   "NEXTAUTH_SECRET",
   "NEXTAUTH_URL",
-  "NEXT_PUBLIC_APP_URL"
+  "NEXT_PUBLIC_APP_URL",
+  "AUTH_GOOGLE_ID",
+  "AUTH_GOOGLE_SECRET"
 ];
 
 let missingCount = 0;
