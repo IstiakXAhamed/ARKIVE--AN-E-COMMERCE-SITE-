@@ -73,6 +73,8 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
                   <p className="text-xs text-gray-500 mt-1">
                     {category.count}+ Products
                   </p>
+                  {/* DEBUG: Show slug to fix emoji mapping */}
+                  <p className="text-[10px] text-red-500 mt-1">{category.slug}</p>
                 </Link>
               </motion.div>
             );
