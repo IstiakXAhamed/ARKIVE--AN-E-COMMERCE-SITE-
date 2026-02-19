@@ -122,7 +122,8 @@ mkdir -p ~/arkivee.com/_next
 # First remove old to prevent buildup, then copy new
 rm -rf ~/arkivee.com/_next/*
 cp -r .next/static ~/arkivee.com/_next/
-echo "Static files updated in ~/arkivee.com/_next"
+chmod -R 755 ~/arkivee.com/_next
+echo "Static files updated and permissions fixed in ~/arkivee.com/_next"
 
 # ── STEP 4: Restart ──
 echo ""
