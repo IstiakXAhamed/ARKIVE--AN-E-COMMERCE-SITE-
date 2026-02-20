@@ -1,0 +1,75 @@
+==============================================================================
+🎨 LIZA DESIGN SYSTEM // ARKIVE FULL E-COMMERCE
+==============================================================================
+
+[PART 1] 👁️ VISUAL LANGUAGE
+   - **Theme Name:** "Emerald Elegance"
+   - **Color Palette:**
+     * Primary: #1a4d3e (Deep Emerald - from ARKIVE logo)
+     * Surface: #f8f7f4 (Warm Cream)
+     * Secondary: #2d6a58 (Forest Green)
+     * Accent: #c9a962 (Gold - for CTAs)
+     * Success: #10b981
+     * Danger: #ef4444
+     * Muted: #6b7280
+   - **Typography:**
+     * Headings: Playfair Display (Elegant Serif)
+     * Body: Inter (Modern Sans)
+   - **Corner Radius:** 16px (rounded-2xl)
+   - **Shadows:** soft-xl with blur
+
+[PART 2] 🏗️ MVC ARCHITECTURE BREAKDOWN
+   - **MODEL (MySQL Database):**
+     * users - Customer & Admin accounts
+     * products - All inventory items
+     * categories - Product categorization
+     * orders - Customer orders
+     * order_items - Order line items
+     * cart - Shopping cart items
+     * wishlist - Saved products
+   
+   - **VIEW (Frontend Pages):**
+     * index.php - Landing with ALL products (Bento Grid)
+     * product.php - Product detail page
+     * cart.php - Shopping cart
+     * checkout.php - Order placement
+     * login.php / register.php - Auth pages
+     * profile.php - Customer profile
+     * admin/*.php - Admin panel pages
+   
+   - **CONTROLLER (PHP API):**
+     * api/products.php - GET/POST/PUT/DELETE products
+     * api/cart.php - Cart operations
+     * api/orders.php - Order management
+     * api/auth.php - Login/Register
+
+[PART 3] 🧩 BENTO LAYOUT STRATEGY
+   - **Hero Slot (2x2):** Promo banner "ARKIVE Collection - Up to 50% OFF"
+   - **Category Bar:** Women | Men | Unisex | Stationery | Combos
+   - **Flash Sale (Full Width):** Countdown + Featured products
+   - **Product Grid (4-col):** ALL products with category filter tabs
+   - **Footer:** Contact, Social Links, Newsletter
+
+[PART 4] ⚡ TECH STACK & HOSTING
+   - **Frontend:** HTML5 + CSS3 (Tailwind-inspired) + Vanilla JS
+   - **Backend:** PHP 8+
+   - **Database:** MySQL (phpMyAdmin compatible)
+   - **Hosting:** cPanel shared hosting
+   - **Animations:** CSS transitions + Intersection Observer
+   - **Fonts:** Google Fonts API
+
+[PART 5] 🧬 PRODUCT CATEGORIES
+   - **Women:** Earrings, Ring, Bracelet, Bag, Purse, Necklace, Nupur
+   - **Men:** Watch, Ring, Perfume, Bracelet
+   - **Unisex:** Bracelet, Ring, Couple rings/chains/bracelets
+   - **Stationery:** Notebooks, Pen, Stickers
+   - **Combos:** Special event packages
+
+[PART 6] 📱 CONTACT INFO
+   - Facebook: ARKIVE
+   - Instagram: arkive_shop_bd
+   - Phone: +8801339705214
+
+==============================================================================
+                        APPROVED BY LIZA ARCHITECT 🎨
+==============================================================================

@@ -1,0 +1,36 @@
+
+> arkive-modern@1.0.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+ ⚠ Port 3002 is in use, trying 3003 instead.
+ ⚠ Port 3003 is in use, trying 3004 instead.
+ ⚠ Port 3004 is in use, trying 3005 instead.
+   ▲ Next.js 15.1.4
+   - Local:        http://localhost:3005
+   - Network:      http://172.31.200.232:3005
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     · cpus
+
+ ✓ Starting...
+ ✓ Ready in 4s
+ ○ Compiling /src/middleware ...
+ ✓ Compiled /src/middleware in 642ms (263 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 12.2s (1654 modules)
+prisma:query SELECT `arkive_store`.`categories`.`id`, `arkive_store`.`categories`.`name`, `arkive_store`.`categories`.`slug`, `arkive_store`.`categories`.`icon` FROM `arkive_store`.`categories` WHERE `arkive_store`.`categories`.`isActive` = ? ORDER BY `arkive_store`.`categories`.`sortOrder` ASC
+prisma:query SELECT `arkive_store`.`flash_sales`.`id`, `arkive_store`.`flash_sales`.`productId`, `arkive_store`.`flash_sales`.`discountPercent`, `arkive_store`.`flash_sales`.`startTime`, `arkive_store`.`flash_sales`.`endTime`, `arkive_store`.`flash_sales`.`isActive`, `arkive_store`.`flash_sales`.`createdAt` FROM `arkive_store`.`flash_sales` WHERE (`arkive_store`.`flash_sales`.`isActive` = ? AND `arkive_store`.`flash_sales`.`startTime` <= ? AND `arkive_store`.`flash_sales`.`endTime` > ?) LIMIT ? OFFSET ?
+prisma:query SELECT `arkive_store`.`products`.`id`, `arkive_store`.`products`.`name`, `arkive_store`.`products`.`slug`, `arkive_store`.`products`.`price`, `arkive_store`.`products`.`compareAtPrice`, `arkive_store`.`products`.`categoryId` FROM `arkive_store`.`products` WHERE (`arkive_store`.`products`.`isActive` = ? AND `arkive_store`.`products`.`isFeatured` = ?) ORDER BY `arkive_store`.`products`.`id` ASC LIMIT ? OFFSET ?
+prisma:query SELECT `arkive_store`.`product_images`.`id`, `arkive_store`.`product_images`.`productId`, `arkive_store`.`product_images`.`url`, `arkive_store`.`product_images`.`alt`, `arkive_store`.`product_images`.`sortOrder`, `arkive_store`.`product_images`.`isPrimary` FROM `arkive_store`.`product_images` WHERE `arkive_store`.`product_images`.`productId` IN (?,?,?,?)
+prisma:query SELECT `arkive_store`.`categories`.`id`, `arkive_store`.`categories`.`name` FROM `arkive_store`.`categories` WHERE `arkive_store`.`categories`.`id` IN (?)
+prisma:query SELECT `arkive_store`.`products`.`id`, `arkive_store`.`products`.`name`, `arkive_store`.`products`.`slug`, `arkive_store`.`products`.`price`, `arkive_store`.`products`.`compareAtPrice`, `arkive_store`.`products`.`categoryId` FROM `arkive_store`.`products` WHERE `arkive_store`.`products`.`isActive` = ? ORDER BY `arkive_store`.`products`.`salesCount` DESC LIMIT ? OFFSET ?
+prisma:query SELECT `arkive_store`.`product_images`.`id`, `arkive_store`.`product_images`.`productId`, `arkive_store`.`product_images`.`url`, `arkive_store`.`product_images`.`alt`, `arkive_store`.`product_images`.`sortOrder`, `arkive_store`.`product_images`.`isPrimary` FROM `arkive_store`.`product_images` WHERE `arkive_store`.`product_images`.`productId` IN (?,?,?,?,?,?,?,?)
+prisma:query SELECT `arkive_store`.`categories`.`id`, `arkive_store`.`categories`.`name` FROM `arkive_store`.`categories` WHERE `arkive_store`.`categories`.`id` IN (?,?)
+ GET / 200 in 14729ms
+ ✓ Compiled in 2.6s (818 modules)
+ ✓ Compiled in 504ms (818 modules)
+ ✓ Compiled in 1085ms (1081 modules)
+ ✓ Compiled in 522ms (1067 modules)
+ ✓ Compiled in 424ms (1081 modules)

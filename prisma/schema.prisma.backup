@@ -1,0 +1,370 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model accounts {
+  id                String  @id
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  users             users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model addresses {
+  id        String   @id
+  userId    String
+  label     String   @default("Home")
+  fullName  String
+  phone     String
+  division  String
+  district  String
+  area      String
+  address   String   @db.Text
+  isDefault Boolean  @default(false)
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders    orders[]
+
+  @@index([userId])
+}
+
+model ai_chat_messages {
+  id               String           @id
+  sessionId        String
+  role             String
+  content          String           @db.Text
+  metadata         String?          @db.LongText
+  createdAt        DateTime         @default(now())
+  ai_chat_sessions ai_chat_sessions @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+model ai_chat_sessions {
+  id               String             @id
+  userId           String?
+  title            String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime
+  ai_chat_messages ai_chat_messages[]
+  users            users?             @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model categories {
+  id          String     @id
+  name        String
+  slug        String     @unique
+  description String?    @db.Text
+  icon        String?
+  image       String?
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime
+  products    products[]
+
+  @@index([isActive])
+  @@index([slug])
+}
+
+model coupons {
+  id            String               @id
+  code          String               @unique
+  description   String?
+  discountType  coupons_discountType @default(PERCENTAGE)
+  discountValue Decimal              @db.Decimal(10, 2)
+  minOrderValue Decimal?             @db.Decimal(10, 2)
+  maxUses       Int?
+  usedCount     Int                  @default(0)
+  isActive      Boolean              @default(true)
+  startsAt      DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime             @default(now())
+
+  @@index([code])
+  @@index([isActive])
+}
+
+model hero_grid_items {
+  id        String   @id
+  position  Int      @unique
+  title     String
+  subtitle  String?
+  imageUrl  String
+  link      String
+  updatedAt DateTime
+}
+
+model order_items {
+  id        String   @id
+  orderId   String
+  productId String
+  name      String
+  price     Decimal  @db.Decimal(10, 2)
+  quantity  Int
+  image     String?
+  orders    orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  products  products @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model orders {
+  id             String               @id
+  orderNumber    String               @unique
+  userId         String
+  addressId      String?
+  status         orders_status        @default(PENDING)
+  paymentMethod  orders_paymentMethod @default(COD)
+  paymentStatus  orders_paymentStatus @default(PENDING)
+  paymentRef     String?
+  subtotal       Decimal              @db.Decimal(10, 2)
+  shippingCost   Decimal              @default(0.00) @db.Decimal(10, 2)
+  discount       Decimal              @default(0.00) @db.Decimal(10, 2)
+  total          Decimal              @db.Decimal(10, 2)
+  couponCode     String?
+  trackingNumber String?
+  trackingUrl    String?
+  notes          String?              @db.Text
+  adminNotes     String?              @db.Text
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  cancelledAt    DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime
+  order_items    order_items[]
+  addresses      addresses?           @relation(fields: [addressId], references: [id])
+  users          users                @relation(fields: [userId], references: [id])
+
+  @@index([addressId], map: "orders_addressId_fkey")
+  @@index([createdAt])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([userId])
+}
+
+model product_images {
+  id        String   @id
+  productId String
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  isPrimary Boolean  @default(false)
+  products  products @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model products {
+  id              String           @id
+  name            String
+  slug            String           @unique
+  description     String?          @db.Text
+  shortDesc       String?          @db.VarChar(500)
+  price           Decimal          @db.Decimal(10, 2)
+  compareAtPrice  Decimal?         @db.Decimal(10, 2)
+  costPrice       Decimal?         @db.Decimal(10, 2)
+  sku             String?          @unique
+  stock           Int              @default(0)
+  lowStockAlert   Int              @default(5)
+  weight          Decimal?         @db.Decimal(8, 2)
+  categoryId      String
+  subcategory     String?
+  tags            String?          @db.Text
+  specs           String?          @db.LongText
+  badge           String?
+  isActive        Boolean          @default(true)
+  isFeatured      Boolean          @default(false)
+  metaTitle       String?          @db.VarChar(160)
+  metaDescription String?          @db.VarChar(320)
+  rating          Decimal          @default(0.0) @db.Decimal(2, 1)
+  reviewsCount    Int              @default(0)
+  salesCount      Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime
+  order_items     order_items[]
+  product_images  product_images[]
+  categories      categories       @relation(fields: [categoryId], references: [id])
+  reviews         reviews[]
+  wishlist        wishlist[]
+
+  @@index([badge])
+  @@index([categoryId])
+  @@index([isActive, isFeatured])
+  @@index([price])
+  @@index([slug])
+}
+
+model reviews {
+  id          String   @id
+  productId   String
+  userId      String
+  rating      Int
+  title       String?
+  comment     String?  @db.Text
+  aiSentiment String?
+  aiReply     String?  @db.Text
+  isApproved  Boolean  @default(false)
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  products    products @relation(fields: [productId], references: [id], onDelete: Cascade)
+  users       users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, userId])
+  @@index([isApproved])
+  @@index([productId])
+  @@index([userId])
+}
+
+model sessions {
+  id           String   @id
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model site_settings {
+  id        String   @id
+  key       String   @unique
+  value     String   @db.Text
+  type      String   @default("string")
+  group     String   @default("general")
+  label     String?
+  updatedAt DateTime
+
+  @@index([group])
+  @@index([key])
+}
+
+model system_logs {
+  id        String            @id
+  level     system_logs_level @default(INFO)
+  action    String
+  message   String            @db.Text
+  metadata  String?           @db.LongText
+  userId    String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime          @default(now())
+  users     users?            @relation(fields: [userId], references: [id])
+
+  @@index([action])
+  @@index([createdAt])
+  @@index([level])
+  @@index([userId], map: "system_logs_userId_fkey")
+}
+
+model users {
+  id               String             @id
+  name             String?
+  email            String             @unique
+  emailVerified    DateTime?
+  password         String?
+  image            String?
+  phone            String?
+  role             users_role         @default(CUSTOMER)
+  provider         users_provider     @default(CREDENTIALS)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime
+  accounts         accounts[]
+  addresses        addresses[]
+  ai_chat_sessions ai_chat_sessions[]
+  orders           orders[]
+  reviews          reviews[]
+  sessions         sessions[]
+  system_logs      system_logs[]
+  wishlist         wishlist[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model verification_tokens {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model wishlist {
+  id        String   @id
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  products  products @relation(fields: [productId], references: [id], onDelete: Cascade)
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId], map: "wishlist_productId_fkey")
+  @@index([userId])
+}
+
+enum system_logs_level {
+  INFO
+  WARN
+  ERROR
+  CRITICAL
+}
+
+enum coupons_discountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum orders_status {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum orders_paymentMethod {
+  BKASH
+  NAGAD
+  COD
+  BANK_TRANSFER
+}
+
+enum orders_paymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum users_role {
+  CUSTOMER
+  ADMIN
+  SUPERADMIN
+}
+
+enum users_provider {
+  CREDENTIALS
+  GOOGLE
+}

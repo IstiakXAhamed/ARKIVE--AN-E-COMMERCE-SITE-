@@ -43,3 +43,8 @@ next-env.d.ts
 # prisma generated client
 prisma/generated
 .env 
+
+nul
+con
+prn
+aux
